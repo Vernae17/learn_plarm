@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}设置 - 学习分析平台{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 30px;">账号设置</h2>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+    <!-- 修改头像 -->
+    <div style="background: rgba(255,255,255,0.9); border-radius: 15px; padding: 30px;">
+        <h3 style="margin-bottom: 20px;">修改头像</h3>
+        <form action="{{ url_for('settings') }}" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="avatar">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="{{ url_for('static', filename='uploads/avatars/' + user.avatar) if user.avatar != 'default_avatar.png' else 'https://via.placeholder.com/100' }}" 
+                     style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;">
+            </div>
+            <input type="file" name="avatar" accept="image/*" required style="margin-bottom: 20px;">
+            <button type="submit" class="btn btn-study" style="width: 100%;">上传新头像</button>
+        </form>
+    </div>
+
+    <!-- 修改密码 -->
+    <div style="background: rgba(255,255,255,0.9); border-radius: 15px; padding: 30px;">
+        <h3 style="margin-bottom: 20px;">修改密码</h3>
+        <form action="{{ url_for('settings') }}" method="post">
+            <input type="hidden" name="action" value="password">
+            <input type="password" name="old_password" placeholder="当前密码" required style="width: 100%; padding: 10px; margin-bottom: 15px; border: 2px solid #e1e1e1; border-radius: 5px;">
+            <input type="password" name="new_password" placeholder="新密码" required style="width: 100%; padding: 10px; margin-bottom: 15px; border: 2px solid #e1e1e1; border-radius: 5px;">
+            <button type="submit" class="btn btn-study" style="width: 100%;">修改密码</button>
+        </form>
+    </div>
+
+    <!-- 个人信息 -->
+    <div style="grid-column: span 2; background: rgba(255,255,255,0.9); border-radius: 15px; padding: 30px;">
+        <h3 style="margin-bottom: 20px;">个人信息</h3>
+        <form action="{{ url_for('settings') }}" method="post">
+            <input type="hidden" name="action" value="info">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px;">用户名</label>
+                    <input type="text" value="{{ user.username }}" disabled style="width: 100%; padding: 10px; border: 2px solid #e1e1e1; border-radius: 5px; background: #f5f5f5;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px;">邮箱</label>
+                    <input type="email" name="email" value="{{ user.email or '' }}" placeholder="请输入邮箱" style="width: 100%; padding: 10px; border: 2px solid #e1e1e1; border-radius: 5px;">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-study" style="width: 200px; margin-top: 20px;">保存修改</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

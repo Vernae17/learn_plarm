@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 我的应用</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-card">
+            <h2>欢迎回来</h2>
+
+            <!-- 消息提示区域 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="/login" method="post" id="loginForm">
+                <div class="input-group">
+                    <label for="username">用户名</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="请输入用户名"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="password">密码</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="请输入密码"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary">登录</button>
+
+                <div class="divider">
+                    <span>还没有账号？</span>
+                </div>
+
+                <a href="/register">
+                    <button type="button" class="btn btn-secondary">注册新账号</button>
+                </a>
+            </form>
+
+            <div class="links">
+                <a href="/forgot-password">忘记密码？</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 我的应用</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-card">
+            <h2>创建账号</h2>
+
+            <!-- 消息提示区域 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="/register" method="post" id="registerForm">
+                <div class="input-group">
+                    <label for="username">用户名</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="请输入用户名"
+                        minlength="3"
+                        maxlength="20"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="email">邮箱</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="请输入邮箱"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="password">密码</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="请输入密码"
+                        minlength="6"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="confirm_password">确认密码</label>
+                    <input
+                        type="password"
+                        id="confirm_password"
+                        name="confirm_password"
+                        placeholder="请再次输入密码"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary">注册</button>
+
+                <div class="divider">
+                    <span>已有账号？</span>
+                </div>
+
+                <a href="/">
+                    <button type="button" class="btn btn-secondary">返回登录</button>
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加简单的客户端验证 -->
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            var password = document.getElementById('password').value;
+            var confirm = document.getElementById('confirm_password').value;
+
+            if (password !== confirm) {
+                e.preventDefault();
+                alert('两次输入的密码不一致！');
+            }
+        });
+    </script>
+</body>
+</html>

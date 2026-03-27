@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 学习分析平台{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <i class="fas fa-book-open" style="font-size: 2rem; color: #667eea;"></i>
+        <div class="stat-value">{{ course_count }}</div>
+        <div class="stat-label">学习课程</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-clock" style="font-size: 2rem; color: #667eea;"></i>
+        <div class="stat-value">{{ total_time }}</div>
+        <div class="stat-label">总学习时长（分钟）</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-chart-line" style="font-size: 2rem; color: #667eea;"></i>
+        <div class="stat-value">{{ user_courses|length }}</div>
+        <div class="stat-label">进行中的课程</div>
+    </div>
+</div>
+
+<h2 style="margin: 30px 0 20px;">我的课程</h2>
+<div class="course-grid" id="courses">
+    {% for uc in user_courses %}
+    <div class="course-card">
+        <div class="course-header">
+            <span class="course-name">{{ uc.course.name }}</span>
+            <span class="course-category">{{ uc.course.category }}</span>
+        </div>
+        <p style="color: #666; margin-bottom: 15px;">{{ uc.course.description or '暂无描述' }}</p>
+        <div class="course-time">
+            <i class="fas fa-clock"></i>
+            <span>已学习：{{ uc.total_time }} 分钟</span>
+        </div>
+        {% if uc.last_study %}
+        <div class="course-time">
+            <i class="fas fa-calendar"></i>
+            <span>上次学习：{{ uc.last_study }}</span>
+        </div>
+        {% endif %}
+        <div class="course-actions">
+            <button class="btn btn-study" onclick="recordStudy({{ uc.course_id }})">
+                <i class="fas fa-play"></i> 学习
+            </button>
+            <button class="btn btn-delete" onclick="deleteCourse({{ uc.course_id }})">
+                <i class="fas fa-trash"></i> 删除
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <div style="grid-column: 1/-1; text-align: center; padding: 50px; background: rgba(255,255,255,0.9); border-radius: 15px;">
+        <i class="fas fa-book-open" style="font-size: 3rem; color: #ccc; margin-bottom: 20px;"></i>
+        <h3 style="color: #666;">还没有添加课程</h3>
+        <p style="color: #999; margin: 10px 0 20px;">点击左侧菜单"添加课程"开始学习</p>
+    </div>
+    {% endfor %}
+</div>
+
+<h2 style="margin: 40px 0 20px;">个性化推荐</h2>
+<div id="recommendations-container" class="recommendations"></div>
+
+<h2 style="margin: 40px 0 20px;">最近活动</h2>
+<div style="background: rgba(255,255,255,0.9); border-radius: 15px; padding: 20px;">
+    {% for activity in recent_activities %}
+    <div style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0;">
+        <i class="fas {% if activity.behavior_type == 'study' %}fa-play-circle{% elif activity.behavior_type == 'add' %}fa-plus-circle{% else %}fa-trash{% endif %}" 
+           style="color: #667eea; width: 30px;"></i>
+        <div style="flex: 1;">
+            {% if activity.course %}
+                {% if activity.behavior_type == 'study' %}
+                    学习了《{{ activity.course.name }}》{{ activity.duration }}分钟
+                {% elif activity.behavior_type == 'add' %}
+                    添加了课程《{{ activity.course.name }}》
+                {% elif activity.behavior_type == 'remove' %}
+                    删除了课程《{{ activity.course.name }}》
+                {% endif %}
+            {% endif %}
+        </div>
+        <div style="color: #999; font-size: 0.9rem;">{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
