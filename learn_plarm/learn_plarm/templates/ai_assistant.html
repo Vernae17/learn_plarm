@@ -1,0 +1,1205 @@
+{% extends "base.html" %}
+
+{% block title %}AI智能助手 - 学习分析平台{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* AI助手页面样式 */
+    .ai-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* 选项卡导航 */
+    .ai-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+
+    .ai-tab {
+        padding: 12px 25px;
+        border: none;
+        background: transparent;
+        color: #666;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ai-tab:hover {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+    }
+
+    .ai-tab.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    /* 选项卡内容 */
+    .tab-pane {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    /* 通用卡片样式 */
+    .ai-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .ai-card h3 {
+        margin-bottom: 20px;
+        color: #2d3748;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* 表单样式 */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #4a5568;
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* 按钮样式 */
+    .btn-ai {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-ai:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    /* 结果区域 */
+    .result-area {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f7fafc;
+        border-radius: 15px;
+        border-left: 4px solid #667eea;
+        white-space: pre-wrap;
+        line-height: 1.6;
+    }
+
+    /* 确保容器可以显示所有内容 */
+    .notes-list {
+        max-height: none !important;  /* 移除高度限制 */
+        overflow-y: visible !important;  /* 确保内容可见 */
+        height: auto !important;  /* 自动高度 */
+    }
+
+    .notes-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .notes-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .notes-list::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 3px;
+    }
+
+    /* 笔记卡片样式 */
+    .note-item {
+        background: #f7fafc;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+        cursor: pointer;
+    }
+
+    .note-item:hover {
+        transform: translateX(5px);
+        background: #edf2f7;
+        border-left-color: #667eea;
+    }
+
+    .note-title {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .note-title i {
+        color: #667eea;
+    }
+
+    .note-date {
+        font-size: 12px;
+        color: #a0aec0;
+        margin-bottom: 10px;
+    }
+
+    .note-summary {
+        font-size: 14px;
+        color: #4a5568;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* 展开后的完整内容样式 */
+    .note-expanded {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .note-full-content {
+        background: #f1f5f9;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+
+    .note-full-original {
+        margin-bottom: 15px;
+    }
+
+    .note-full-original h4,
+    .note-full-summary h4 {
+        font-size: 13px;
+        color: #4a5568;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .note-full-original-content {
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 300px;
+        overflow-y: auto;
+        font-size: 14px;
+    }
+
+    .note-full-summary-content {
+        background: #f0fdf4;
+        padding: 12px;
+        border-radius: 8px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-break: break-word;
+        border-left: 3px solid #10b981;
+        font-size: 14px;
+    }
+
+    .note-expanded-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        justify-content: flex-end;
+    }
+
+    .note-expanded-actions button {
+        padding: 6px 16px;
+        font-size: 13px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .note-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-view-note {
+        background: #667eea;
+        color: white;
+        padding: 5px 12px;
+        font-size: 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn-view-note:hover {
+        background: #5a67d8;
+    }
+
+    .btn-delete-note {
+        background: #f56565;
+        color: white;
+        padding: 5px 12px;
+        font-size: 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn-delete-note:hover {
+        background: #e53e3e;
+    }
+
+    .btn-edit-note {
+        background: #4299e1;
+        color: white;
+    }
+
+    .btn-edit-note:hover {
+        background: #3182ce;
+    }
+
+    .btn-close-expanded {
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+
+    .btn-close-expanded:hover {
+        background: #cbd5e0;
+    }
+
+    /* 编辑模态框样式 */
+    .edit-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .edit-modal-content {
+        background: white;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 700px;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    .edit-modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .edit-modal-body {
+        padding: 20px;
+    }
+
+    .edit-modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background: #e2e8f0;
+        color: #4a5568;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 40px;
+        color: #667eea;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #a0aec0;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 15px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        border-radius: 50%;
+        border-top-color: #667eea;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    /* 历史评估卡片样式 */
+    .assessment-item {
+        background: #f7fafc;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+        cursor: pointer;
+    }
+
+    .assessment-item:hover {
+        transform: translateX(5px);
+        background: #edf2f7;
+        border-left-color: #667eea;
+    }
+
+    .assessment-date {
+        font-size: 12px;
+        color: #a0aec0;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .assessment-preview {
+        font-size: 14px;
+        color: #4a5568;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .assessment-expanded {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .assessment-full-content {
+        background: #f1f5f9;
+        padding: 15px;
+        border-radius: 10px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 14px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .assessment-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        justify-content: flex-end;
+    }
+
+    .btn-view-assessment {
+        background: #667eea;
+        color: white;
+        padding: 5px 12px;
+        font-size: 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn-view-assessment:hover {
+        background: #5a67d8;
+    }
+
+    .btn-close-assessment {
+        background: #e2e8f0;
+        color: #4a5568;
+        padding: 5px 12px;
+        font-size: 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn-close-assessment:hover {
+        background: #cbd5e0;
+    }
+
+    /* 结果区域 - 解决内容溢出 */
+.result-area {
+    overflow-x: auto !important;
+    word-break: break-word !important;
+    white-space: pre-wrap !important;
+    max-width: 100% !important;
+}
+
+.result-area pre {
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+    overflow-x: auto !important;
+    max-width: 100% !important;
+}
+
+/* 表格溢出处理 */
+.result-area table {
+    display: block !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+}
+
+/* mermaid 图表容器 */
+.result-area .mermaid,
+.result-area [class*="mermaid"] {
+    overflow-x: auto !important;
+    max-width: 100% !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ai-container">
+    <h2 style="margin-bottom: 30px;"><i class="fas fa-robot"></i> AI智能助手</h2>
+
+    <!-- 选项卡 -->
+    <div class="ai-tabs">
+        <button class="ai-tab active" onclick="switchTab('recommend')">
+            <i class="fas fa-star"></i> 课程推荐
+        </button>
+        <button class="ai-tab" onclick="switchTab('note')">
+            <i class="fas fa-sticky-note"></i> 笔记总结
+        </button>
+        <button class="ai-tab" onclick="switchTab('plan')">
+            <i class="fas fa-calendar-alt"></i> 学习计划
+        </button>
+        <button class="ai-tab" onclick="switchTab('path')">
+            <i class="fas fa-road"></i> 学习路径
+        </button>
+        <button class="ai-tab" onclick="switchTab('quiz')">
+            <i class="fas fa-puzzle-piece"></i> 试题生成
+        </button>
+        <button class="ai-tab" onclick="switchTab('assess')">
+            <i class="fas fa-chart-line"></i> 进度评估
+        </button>
+    </div>
+
+    <!-- 课程推荐选项卡 -->
+    <div id="recommend-tab" class="tab-pane active">
+        <div class="ai-card">
+            <h3><i class="fas fa-star"></i> 智能课程推荐</h3>
+            <p style="margin-bottom: 20px; color: #718096;">基于您的学习历史，AI为您推荐最适合的课程</p>
+            <button class="btn-ai" onclick="getRecommendations()">
+                <i class="fas fa-magic"></i> 获取推荐
+            </button>
+            <div id="recommend-result" class="result-area" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 笔记总结选项卡 -->
+    <div id="note-tab" class="tab-pane">
+        <div class="ai-card">
+            <h3><i class="fas fa-plus-circle"></i> 新建笔记总结</h3>
+            <div class="form-group">
+                <label>笔记标题</label>
+                <input type="text" id="note-title" placeholder="输入笔记标题">
+            </div>
+            <div class="form-group">
+                <label>笔记内容</label>
+                <textarea id="note-content" rows="6" placeholder="输入您的学习笔记内容..."></textarea>
+            </div>
+            <button class="btn-ai" onclick="createNoteSummary()">
+                <i class="fas fa-robot"></i> AI智能总结
+            </button>
+            <div id="note-result" class="result-area" style="display: none;"></div>
+        </div>
+
+        <div class="ai-card">
+            <h3><i class="fas fa-history"></i> 历史笔记</h3>
+            <div id="notes-list" class="notes-list">
+                <div class="loading-spinner">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 学习计划选项卡 -->
+    <div id="plan-tab" class="tab-pane">
+        <div class="ai-card">
+            <h3><i class="fas fa-calendar-alt"></i> 生成学习计划</h3>
+            <div class="form-group">
+                <label>学习目标</label>
+                <input type="text" id="plan-goal" placeholder="例如：3个月内掌握Python数据分析">
+            </div>
+            <div class="form-group">
+                <label>计划天数</label>
+                <input type="number" id="plan-days" value="30">
+            </div>
+            <div class="form-group">
+                <label>每天学习时长（小时）</label>
+                <input type="number" id="plan-hours" value="2">
+            </div>
+            <button class="btn-ai" onclick="generatePlan()">
+                <i class="fas fa-magic"></i> 生成计划
+            </button>
+            <div id="plan-result" class="result-area" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 学习路径选项卡 -->
+    <div id="path-tab" class="tab-pane">
+        <div class="ai-card">
+            <h3><i class="fas fa-road"></i> 学习路径规划</h3>
+            <div class="form-group">
+                <label>目标技能</label>
+                <input type="text" id="path-skill" placeholder="例如：机器学习工程师">
+            </div>
+            <div class="form-group">
+                <label>当前水平</label>
+                <select id="path-level">
+                    <option value="beginner">初学者</option>
+                    <option value="intermediate">中级</option>
+                    <option value="advanced">高级</option>
+                </select>
+            </div>
+            <button class="btn-ai" onclick="generatePath()">
+                <i class="fas fa-magic"></i> 规划路径
+            </button>
+            <div id="path-result" class="result-area" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 试题生成选项卡 -->
+    <div id="quiz-tab" class="tab-pane">
+        <div class="ai-card">
+            <h3><i class="fas fa-puzzle-piece"></i> 智能试题生成</h3>
+            <div class="form-group">
+                <label>课程名称</label>
+                <input type="text" id="quiz-course" placeholder="例如：Python基础">
+            </div>
+            <div class="form-group">
+                <label>知识点</label>
+                <input type="text" id="quiz-topic" placeholder="例如：列表和元组">
+            </div>
+            <div class="form-group">
+                <label>难度</label>
+                <select id="quiz-difficulty">
+                    <option value="easy">简单</option>
+                    <option value="medium" selected>中等</option>
+                    <option value="hard">困难</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>题目数量</label>
+                <input type="number" id="quiz-count" value="5" min="1" max="10">
+            </div>
+            <button class="btn-ai" onclick="generateQuiz()">
+                <i class="fas fa-magic"></i> 生成试题
+            </button>
+            <div id="quiz-result" class="result-area" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 进度评估选项卡 -->
+    <div id="assess-tab" class="tab-pane">
+        <div class="ai-card">
+            <h3><i class="fas fa-chart-line"></i> 学习进度评估</h3>
+            <button class="btn-ai" onclick="assessProgress()">
+                <i class="fas fa-magic"></i> 开始评估
+            </button>
+            <div id="assess-result" class="result-area" style="display: none;"></div>
+        </div>
+
+        <div class="ai-card">
+            <h3>
+                <i class="fas fa-history"></i> 历史评估
+                <button onclick="refreshAssessments()" style="margin-left: auto; padding: 5px 10px; font-size: 12px;">
+                    <i class="fas fa-sync-alt"></i> 刷新
+                </button>
+            </h3>
+            <div id="assessments-list" class="notes-list">
+                <div class="loading-spinner">加载中...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 当前展开的笔记ID
+    let currentExpandedNoteId = null;
+
+    // 当前展开的评估ID
+    let currentExpandedAssessmentId = null;  //
+
+    // 选项卡切换
+    function switchTab(tabName) {
+        const tabs = document.querySelectorAll('.tab-pane');
+        const buttons = document.querySelectorAll('.ai-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        buttons.forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // 显示结果
+    function showResult(elementId, content, isError = false) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = content;
+        element.style.display = 'block';
+        element.style.borderLeftColor = isError ? '#f56565' : '#667eea';
+        element.style.background = isError ? '#fff5f5' : '#f7fafc';
+    }
+
+    // 1. 课程推荐
+    function getRecommendations() {
+        showResult('recommend-result', '<div class="loading"></div> 正在分析您的学习数据...');
+        fetch('/api/ai_recommend', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) showResult('recommend-result', `<pre>${data.recommendations}</pre>`);
+                else showResult('recommend-result', '获取推荐失败', true);
+            })
+            .catch(err => showResult('recommend-result', '请求失败：' + err, true));
+    }
+
+    // 2. 创建笔记
+    function createNoteSummary() {
+        const title = document.getElementById('note-title').value;
+        const content = document.getElementById('note-content').value;
+        if (!content) { alert('请输入笔记内容'); return; }
+        showResult('note-result', '<div class="loading"></div> AI正在总结您的笔记...');
+        fetch('/api/summarize_note', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showResult('note-result', `<strong>AI总结：</strong><br>${data.summary}`);
+                document.getElementById('note-title').value = '';
+                document.getElementById('note-content').value = '';
+                loadNotes();
+            } else showResult('note-result', '总结失败：' + data.error, true);
+        })
+        .catch(err => showResult('note-result', '请求失败：' + err, true));
+    }
+
+    // 加载笔记列表
+    function loadNotes() {
+        const container = document.getElementById('notes-list');
+        if (!container) return;
+        container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>';
+        fetch('/api/summarize_note')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.notes && data.notes.length > 0) {
+                    container.innerHTML = data.notes.map(note => `
+                        <div class="note-item" data-note-id="${note.id}">
+                            <div class="note-title" onclick="toggleExpandNote(${note.id})">
+                                <i class="fas fa-sticky-note"></i> ${escapeHtml(note.note_title || '无标题')}
+                            </div>
+                            <div class="note-date" onclick="toggleExpandNote(${note.id})">
+                                <i class="fas fa-calendar-alt"></i> ${formatDate(note.created_at)}
+                            </div>
+                            <div class="note-summary" onclick="toggleExpandNote(${note.id})">
+                                ${escapeHtml(note.summary || '暂无总结').substring(0, 150)}${(note.summary && note.summary.length > 150) ? '...' : ''}
+                            </div>
+                            <div class="note-actions">
+                                <button class="btn-view-note" onclick="toggleExpandNote(${note.id})">
+                                    <i class="fas fa-eye"></i> 查看全文
+                                </button>
+                                <button class="btn-delete-note" onclick="event.stopPropagation(); deleteNote(${note.id})">
+                                    <i class="fas fa-trash"></i> 删除
+                                </button>
+                            </div>
+                            <div id="expanded-content-${note.id}" class="note-expanded" style="display: none;"></div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-sticky-note"></i><h3>暂无笔记</h3><p>点击上方"新建笔记总结"开始记录你的学习笔记吧！</p></div>`;
+                }
+            })
+            .catch(error => {
+                console.error('加载笔记失败:', error);
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>加载失败：${error.message}</p><button onclick="loadNotes()" style="margin-top:10px;padding:8px 16px;">重试</button></div>`;
+            });
+    }
+
+    // 展开/收起笔记
+    function toggleExpandNote(noteId) {
+        const expandedDiv = document.getElementById(`expanded-content-${noteId}`);
+        if (expandedDiv.style.display === 'block') {
+            expandedDiv.style.display = 'none';
+            currentExpandedNoteId = null;
+            return;
+        }
+        if (currentExpandedNoteId) {
+            const prevExpanded = document.getElementById(`expanded-content-${currentExpandedNoteId}`);
+            if (prevExpanded) prevExpanded.style.display = 'none';
+        }
+        expandedDiv.innerHTML = '<div class="loading-spinner">加载中...</div>';
+        expandedDiv.style.display = 'block';
+        currentExpandedNoteId = noteId;
+        fetch(`/api/summarize_note?id=${noteId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.note) {
+                    const note = data.note;
+                    expandedDiv.innerHTML = `
+                        <div class="note-full-content">
+                            <div class="note-full-original">
+                                <h4><i class="fas fa-file-alt"></i> 原文内容</h4>
+                                <div class="note-full-original-content">${escapeHtml(note.original_content || '暂无内容').replace(/\n/g, '<br>')}</div>
+                            </div>
+                            <div class="note-full-summary">
+                                <h4><i class="fas fa-lightbulb"></i> AI智能总结</h4>
+                                <div class="note-full-summary-content">${escapeHtml(note.summary || '暂无总结').replace(/\n/g, '<br>')}</div>
+                            </div>
+                            <div class="note-expanded-actions">
+                                <button class="btn-edit-note" onclick="event.stopPropagation(); editNote(${note.id})">
+                                    <i class="fas fa-edit"></i> 编辑
+                                </button>
+                                <button class="btn-close-expanded" onclick="event.stopPropagation(); toggleExpandNote(${note.id})">
+                                    <i class="fas fa-times"></i> 关闭
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else expandedDiv.innerHTML = '<div class="error">加载失败</div>';
+            })
+            .catch(error => {
+                console.error('获取笔记详情失败:', error);
+                expandedDiv.innerHTML = '<div class="error">加载失败</div>';
+            });
+    }
+
+    // 编辑笔记
+    function editNote(noteId) {
+        fetch(`/api/summarize_note?id=${noteId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.note) {
+                    showEditModal(data.note);
+                    const expandedDiv = document.getElementById(`expanded-content-${noteId}`);
+                    if (expandedDiv) expandedDiv.style.display = 'none';
+                    currentExpandedNoteId = null;
+                } else alert('获取笔记失败');
+            })
+            .catch(error => { console.error('获取笔记失败:', error); alert('获取笔记失败：' + error.message); });
+    }
+
+    // 显示编辑模态框
+    function showEditModal(note) {
+        const existingModal = document.getElementById('editModal');
+        if (existingModal) existingModal.remove();
+        const modal = document.createElement('div');
+        modal.className = 'edit-modal';
+        modal.id = 'editModal';
+        modal.innerHTML = `
+            <div class="edit-modal-content">
+                <div class="edit-modal-header">
+                    <h3><i class="fas fa-edit"></i> 编辑笔记</h3>
+                    <span style="cursor:pointer;font-size:24px;" onclick="this.closest('.edit-modal').remove()">&times;</span>
+                </div>
+                <div class="edit-modal-body">
+                    <div class="form-group">
+                        <label>笔记标题</label>
+                        <input type="text" id="edit-note-title" class="form-control" value="${escapeHtml(note.note_title || '')}" placeholder="输入笔记标题">
+                    </div>
+                    <div class="form-group">
+                        <label>笔记内容</label>
+                        <textarea id="edit-note-content" rows="8" class="form-control" placeholder="输入笔记内容">${escapeHtml(note.original_content || '')}</textarea>
+                    </div>
+                </div>
+                <div class="edit-modal-footer">
+                    <button class="btn-save" onclick="updateNote(${note.id})"><i class="fas fa-save"></i> 保存修改</button>
+                    <button class="btn-cancel" onclick="this.closest('.edit-modal').remove()">取消</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    }
+
+    // 更新笔记
+    function updateNote(noteId) {
+        const title = document.getElementById('edit-note-title').value;
+        const content = document.getElementById('edit-note-content').value;
+        if (!content) { alert('笔记内容不能为空'); return; }
+        const modal = document.getElementById('editModal');
+        const saveBtn = modal.querySelector('.btn-save');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+        saveBtn.disabled = true;
+        fetch('/api/summarize_note', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: noteId, title, content })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                modal.remove();
+                showToast('笔记更新成功', 'success');
+                loadNotes();
+            } else alert('更新失败：' + (data.error || '未知错误'));
+        })
+        .catch(error => { console.error('更新失败:', error); alert('更新失败：' + error.message); })
+        .finally(() => { saveBtn.innerHTML = originalText; saveBtn.disabled = false; });
+    }
+
+    // 删除笔记
+    function deleteNote(noteId) {
+        if (!confirm('确定要删除这条笔记吗？此操作不可恢复！')) return;
+        fetch(`/api/summarize_note?id=${noteId}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const expandedDiv = document.getElementById(`expanded-content-${noteId}`);
+                    if (expandedDiv) expandedDiv.remove();
+                    loadNotes();
+                    showToast('笔记删除成功', 'success');
+                } else alert('删除失败：' + (data.error || '未知错误'));
+            })
+            .catch(error => { console.error('删除失败:', error); alert('删除失败：' + error.message); });
+    }
+
+    // 3. 生成学习计划
+    function generatePlan() {
+        const goal = document.getElementById('plan-goal').value;
+        const days = document.getElementById('plan-days').value;
+        const hours = document.getElementById('plan-hours').value;
+        if (!goal) { alert('请输入学习目标'); return; }
+        showResult('plan-result', '<div class="loading"></div> AI正在生成学习计划...');
+        fetch('/api/generate_plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goal, days, hours }) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) showResult('plan-result', `<pre>${data.plan}</pre>`);
+                else showResult('plan-result', '生成失败：' + data.error, true);
+            })
+            .catch(err => showResult('plan-result', '请求失败：' + err, true));
+    }
+
+    // 4. 学习路径
+    function generatePath() {
+        const skill = document.getElementById('path-skill').value;
+        const level = document.getElementById('path-level').value;
+        if (!skill) { alert('请输入目标技能'); return; }
+        showResult('path-result', '<div class="loading"></div> AI正在规划学习路径...');
+        fetch('/api/learning_path', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skill, level }) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) showResult('path-result', `<pre>${data.path}</pre>`);
+                else showResult('path-result', '规划失败：' + data.error, true);
+            })
+            .catch(err => showResult('path-result', '请求失败：' + err, true));
+    }
+
+    // 5. 生成试题
+    function generateQuiz() {
+        const course = document.getElementById('quiz-course').value;
+        const topic = document.getElementById('quiz-topic').value;
+        const difficulty = document.getElementById('quiz-difficulty').value;
+        const count = document.getElementById('quiz-count').value;
+        if (!topic) { alert('请输入知识点'); return; }
+        showResult('quiz-result', '<div class="loading"></div> AI正在生成试题...');
+        fetch('/api/generate_quiz', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ course, topic, difficulty, count }) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) showResult('quiz-result', `<pre>${data.quiz}</pre>`);
+                else showResult('quiz-result', '生成失败：' + data.error, true);
+            })
+            .catch(err => showResult('quiz-result', '请求失败：' + err, true));
+    }
+
+    // 6. 学习评估
+    function assessProgress() {
+        showResult('assess-result', '<div class="loading"></div> AI正在分析您的学习数据...');
+        fetch('/api/assess_progress')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('assess-result', `<pre>${data.assessment}</pre>`);
+                    loadAssessments();
+                } else showResult('assess-result', '评估失败：' + data.error, true);
+            })
+            .catch(err => showResult('assess-result', '请求失败：' + err, true));
+    }
+
+    // 加载历史评估
+    // 加载历史评估（完整版）
+    function loadAssessments() {
+        const container = document.getElementById('assessments-list');
+        if (!container) return;
+
+        container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>';
+
+        fetch('/api/get_assessments', {
+        method: 'GET',
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        }
+    })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // 兼容两种字段名
+                    const assessments = data.assessments || data.assessment;
+                    if (assessments && assessments.length > 0) {
+                        container.innerHTML = assessments.map((ass, index) => {
+                            // 兼容两种数据格式
+                            const content = ass.assessment_content || ass;
+                            const date = ass.created_at || (typeof ass === 'object' ? new Date().toISOString() : '');
+                            const assessmentId = ass.id || index;
+                            // 获取评估内容的预览（前150个字符）
+                            const preview = content ? (content.length > 150 ? content.substring(0, 150) + '...' : content) : '暂无内容';
+                            return `
+                                <div class="assessment-item" data-assessment-id="${assessmentId}">
+                                    <div class="assessment-date" onclick="toggleAssessmentExpand(${assessmentId})">
+                                        <i class="fas fa-chart-line"></i>
+                                        评估时间：${formatDate(date)}
+                                    </div>
+                                    <div class="assessment-preview" onclick="toggleAssessmentExpand(${assessmentId})">
+                                        ${escapeHtml(preview)}
+                                    </div>
+                                    <div class="assessment-actions">
+                                        <button class="btn-view-assessment" onclick="toggleAssessmentExpand(${assessmentId})">
+                                            <i class="fas fa-eye"></i> 查看全文
+                                        </button>
+                                    </div>
+                                    <div id="assessment-expanded-${assessmentId}" class="assessment-expanded" style="display: none;">
+                                        <div class="assessment-full-content">
+                                            ${escapeHtml(content || '暂无内容').replace(/\n/g, '<br>')}
+                                        </div>
+                                        <div class="assessment-actions">
+                                            <button class="btn-close-assessment" onclick="toggleAssessmentExpand(${assessmentId})">
+                                                <i class="fas fa-times"></i> 关闭
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-chart-line"></i>
+                                <p>暂无历史评估</p>
+                                <p style="font-size:12px;margin-top:8px;">点击"开始评估"生成你的第一份学习评估报告</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>加载失败：${escapeHtml(data.error || '未知错误')}</p>
+                            <button onclick="loadAssessments()" class="btn-retry">重试</button>
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                console.error('加载评估失败:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>加载失败：${escapeHtml(err.message)}</p>
+                        <button onclick="loadAssessments()" class="btn-retry">重试</button>
+                    </div>
+                `;
+            });
+    }
+
+    // 添加强制刷新按钮
+function refreshAssessments() {
+    console.log('强制刷新历史评估...');
+    // 清除可能存在的缓存
+    if ('caches' in window) {
+        caches.keys().then(names => {
+            names.forEach(name => {
+                caches.delete(name);
+            });
+        });
+    }
+    // 重新加载
+    loadAssessments();
+}
+
+    // 展开/收起评估内容
+    function toggleAssessmentExpand(assessmentId) {
+        const expandedDiv = document.getElementById(`assessment-expanded-${assessmentId}`);
+        const parentItem = document.querySelector(`.assessment-item[data-assessment-id="${assessmentId}"]`);
+
+        if (!expandedDiv) return;
+
+        // 如果已经展开，则收起
+        if (expandedDiv.style.display === 'block') {
+            expandedDiv.style.display = 'none';
+            if (currentExpandedAssessmentId === assessmentId) {
+                currentExpandedAssessmentId = null;
+            }
+            // 恢复原始样式
+            if (parentItem) {
+                parentItem.style.borderLeftColor = 'transparent';
+            }
+            return;
+        }
+
+        // 收起之前展开的评估
+        if (currentExpandedAssessmentId !== null) {
+            const prevExpanded = document.getElementById(`assessment-expanded-${currentExpandedAssessmentId}`);
+            const prevItem = document.querySelector(`.assessment-item[data-assessment-id="${currentExpandedAssessmentId}"]`);
+            if (prevExpanded) {
+                prevExpanded.style.display = 'none';
+            }
+            if (prevItem) {
+                prevItem.style.borderLeftColor = 'transparent';
+            }
+        }
+
+        // 展开当前评估
+        expandedDiv.style.display = 'block';
+        if (parentItem) {
+            parentItem.style.borderLeftColor = '#667eea';
+        }
+        currentExpandedAssessmentId = assessmentId;
+    }
+
+    // 格式化日期
+    // 简化版：直接显示具体时间
+   // 格式化日期 - 24小时制
+    function formatDate(dateStr) {
+        if (!dateStr) return '未知时间';
+        try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');  // 24小时制，补零
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            // 格式：2026-03-22 18:54
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        } catch (e) {
+            return dateStr;
+        }
+    }
+
+    // HTML转义
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // 显示提示
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `toast-message ${type}`;
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+        toast.style.cssText = `position:fixed;bottom:20px;right:20px;background:${type === 'success' ? '#10b981' : '#f56565'};color:white;padding:12px 24px;border-radius:10px;z-index:3000;animation:fadeIn 0.3s ease;box-shadow:0 4px 12px rgba(0,0,0,0.15);`;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+
+    // 页面加载
+    document.addEventListener('DOMContentLoaded', () => {
+        loadNotes();
+        loadAssessments();
+    });
+</script>
+{% endblock %}

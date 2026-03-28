@@ -1,0 +1,996 @@
+{% extends "base.html" %}
+
+{% block title %}我的课程 - 学习分析平台{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 标签页导航 */
+    .course-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+
+    .tab-btn {
+        padding: 10px 25px;
+        border: none;
+        background: transparent;
+        color: #666;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 8px 8px 0 0;
+        position: relative;
+    }
+
+    .tab-btn i {
+        margin-right: 8px;
+    }
+
+    .tab-btn:hover {
+        color: #667eea;
+        background: rgba(102, 126, 234, 0.1);
+    }
+
+    .tab-btn.active {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -12px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 3px 3px 0 0;
+    }
+
+    /* 标签页内容 */
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 统计卡片 */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #667eea;
+        margin: 10px 0;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    /* 添加课程按钮 */
+    .add-course-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 50px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 30px auto;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        width: fit-content;
+    }
+
+    .add-course-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .add-course-btn i {
+        font-size: 20px;
+    }
+
+    /* 课程网格 */
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    /* 课程卡片 */
+    .course-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: cardFadeIn 0.5s ease-out;
+    }
+
+    @keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .course-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .course-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+
+    .course-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin: 0;
+    }
+
+    .course-category {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 25px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    .course-description {
+        color: #718096;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin: 15px 0;
+        padding-right: 20px;
+    }
+
+    .course-stats {
+        display: flex;
+        gap: 20px;
+        margin: 20px 0;
+        padding: 15px 0;
+        border-top: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #4a5568;
+    }
+
+    .stat-item i {
+        color: #667eea;
+        width: 20px;
+    }
+
+    .course-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-study, .btn-edit, .btn-delete {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .btn-study {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-study:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-edit {
+        background: #4299e1;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background: #3182ce;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: #f56565;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #e53e3e;
+        transform: translateY(-2px);
+    }
+
+    /* 学习记录卡片 */
+    .study-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: all 0.3s ease;
+    }
+
+    .study-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .study-info {
+        flex: 1;
+    }
+
+    .study-course-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 5px;
+    }
+
+    .study-details {
+        display: flex;
+        gap: 20px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    .study-details i {
+        color: #667eea;
+        margin-right: 5px;
+    }
+
+    .study-badge {
+        padding: 5px 15px;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-study {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+
+    .badge-add {
+        background: #bee3f8;
+        color: #2c5282;
+    }
+
+    .badge-remove {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+
+    /* 空状态 */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        margin: 20px 0;
+    }
+
+    .empty-state i {
+        font-size: 4em;
+        color: #cbd5e0;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+        color: #4a5568;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #718096;
+    }
+
+    /* 模态框 */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        width: 500px;
+        max-width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal h3 {
+        color: #2d3748;
+        margin-bottom: 30px;
+        font-size: 1.8rem;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #4a5568;
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn-save, .btn-cancel {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-cancel {
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+
+    .btn-cancel:hover {
+        background: #cbd5e0;
+    }
+
+    /* 时间输入框样式 */
+    input[type="datetime-local"] {
+        padding: 10px;
+    }
+
+    /* 加载动画 */
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* 删除动画 */
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-20px); }
+    }
+
+    .fade-out {
+        animation: fadeOut 0.3s ease forwards;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 30px;">我的课程</h2>
+
+<!-- 统计卡片 -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <i class="fas fa-book-open" style="font-size: 2rem; color: #667eea;"></i>
+        <div class="stat-value">{{ user_course|length }}</div>
+        <div class="stat-label">学习课程</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-clock" style="font-size: 2rem; color: #667eea;"></i>
+        <div class="stat-value">{{ total_time }}</div>
+        <div class="stat-label">总学习时长（分钟）</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-chart-line" style="font-size: 2rem; color: #667eea;"></i>
+        <div class="stat-value">{{ recent_activities|length }}</div>
+        <div class="stat-label">最近活动</div>
+    </div>
+</div>
+
+<!-- 标签页导航 -->
+<div class="course-tabs">
+    <button class="tab-btn active" onclick="switchTab('courses')">
+        <i class="fas fa-book"></i> 课程列表
+    </button>
+    <button class="tab-btn" onclick="switchTab('learning')">
+        <i class="fas fa-history"></i> 学习记录
+    </button>
+</div>
+
+<!-- 课程标签页内容 -->
+<div id="courses-tab" class="tab-content active">
+    <!-- 添加课程按钮 -->
+    <button class="add-course-btn" onclick="showAddCourseModal()">
+        <i class="fas fa-plus-circle"></i> 添加新课程
+    </button>
+
+    <!-- 课程列表 -->
+    {% if user_course %}
+    <div class="courses-grid">
+        {% for course in user_course %}
+        <div class="course-card" id="course-{{ course.id }}">
+            <div class="course-header">
+                <h3 class="course-title">{{ course.name }}</h3>
+                <span class="course-category">{{ course.category }}</span>
+            </div>
+            <p class="course-description">{{ course.description or '暂无描述' }}</p>
+            <div class="course-stats">
+                <div class="stat-item">
+                    <i class="fas fa-clock"></i>
+                    <span>已学 {{ course.total_time }} 分钟</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>上次学习：{{ course.last_study }}</span>
+                </div>
+            </div>
+            <div class="course-actions">
+                <button class="btn-study" onclick="startStudy({{ course.id }})">
+                    <i class="fas fa-play"></i> 学习
+                </button>
+                <button class="btn-edit" onclick="editCourse({{ course.id }})">
+                    <i class="fas fa-edit"></i> 编辑
+                </button>
+                <button class="btn-delete" onclick="deleteCourse({{ course.id }})">
+                    <i class="fas fa-trash"></i> 删除
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-book-open"></i>
+        <h3>暂无课程</h3>
+        <p>点击上方按钮添加你的第一门课程吧！</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 学习标签页内容 -->
+<div id="learning-tab" class="tab-content">
+    <h3 style="margin-bottom: 20px;">最近学习记录</h3>
+
+    {% if recent_activities %}
+    <div class="learning-list">
+        {% for activity in recent_activities %}
+        <div class="study-card">
+            <div class="study-info">
+                <div class="study-course-name">{{ activity.course_name }}</div>
+                <div class="study-details">
+                    <span>
+                        <i class="fas fa-clock"></i>
+                        {% if activity.behavior == 'study' %}
+                            学习了 {{ activity.duration }} 分钟
+                        {% elif activity.behavior == 'add' %}
+                            添加了课程
+                        {% elif activity.behavior == 'remove' %}
+                            删除了课程
+                        {% endif %}
+                    </span>
+                    <span>
+                        <i class="fas fa-calendar"></i> {{ activity.time }}
+                    </span>
+                </div>
+            </div>
+            <span class="study-badge
+                {% if activity.behavior == 'study' %}badge-study
+                {% elif activity.behavior == 'add' %}badge-add
+                {% elif activity.behavior == 'remove' %}badge-remove
+                {% endif %}">
+                {{ activity.behavior }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-history"></i>
+        <h3>暂无学习记录</h3>
+        <p>开始学习吧，记录将在这里显示！</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 添加课程模态框 -->
+<div id="addCourseModal" class="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-plus-circle"></i> 添加新课程</h3>
+        <form id="addCourseForm">
+            <div class="form-group">
+                <label for="courseName">课程名称 <span style="color: #f56565;">*</span></label>
+                <input type="text" id="courseName" name="name" required placeholder="请输入课程名称">
+            </div>
+            <div class="form-group">
+                <label for="courseCategory">课程类别</label>
+                <select id="courseCategory" name="category">
+                    <option value="编程">编程</option>
+                    <option value="语言">语言</option>
+                    <option value="计算机科学">计算机科学</option>
+                    <option value="人工智能">人工智能</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="courseDescription">课程描述</label>
+                <textarea id="courseDescription" name="description" rows="3" placeholder="请输入课程描述（选填）"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-save">添加课程</button>
+                <button type="button" class="btn-cancel" onclick="hideAddCourseModal()">取消</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 编辑课程模态框 -->
+<div id="editCourseModal" class="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-edit"></i> 编辑课程</h3>
+        <form id="editCourseForm">
+            <input type="hidden" id="editCourseId" name="course_id">
+            <div class="form-group">
+                <label for="editCourseName">课程名称 <span style="color: #f56565;">*</span></label>
+                <input type="text" id="editCourseName" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="editCourseCategory">课程类别</label>
+                <select id="editCourseCategory" name="category">
+                    <option value="编程">编程</option>
+                    <option value="语言">语言</option>
+                    <option value="计算机科学">计算机科学</option>
+                    <option value="人工智能">人工智能</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editCourseDescription">课程描述</label>
+                <textarea id="editCourseDescription" name="description" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editCourseLasttime">最近学习时间</label>
+                <input type="datetime-local" id="editCourseLasttime" name="last_study" class="form-control">
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-save">保存修改</button>
+                <button type="button" class="btn-cancel" onclick="hideEditCourseModal()">取消</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// 标签页切换
+function switchTab(tab) {
+    const tabs = document.querySelectorAll('.tab-content');
+    const buttons = document.querySelectorAll('.tab-btn');
+
+    tabs.forEach(t => t.classList.remove('active'));
+    buttons.forEach(b => b.classList.remove('active'));
+
+    document.getElementById(tab + '-tab').classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
+// 添加课程模态框
+function showAddCourseModal() {
+    document.getElementById('addCourseModal').classList.add('active');
+}
+
+function hideAddCourseModal() {
+    document.getElementById('addCourseModal').classList.remove('active');
+    document.getElementById('addCourseForm').reset();
+}
+
+// 编辑课程模态框
+function showEditCourseModal() {
+    document.getElementById('editCourseModal').classList.add('active');
+}
+
+function hideEditCourseModal() {
+    document.getElementById('editCourseModal').classList.remove('active');
+    document.getElementById('editCourseForm').reset();
+}
+
+// 添加课程
+document.getElementById('addCourseForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="loading"></span> 添加中...';
+    submitBtn.disabled = true;
+
+    const formData = {
+        name: document.getElementById('courseName').value.trim(),
+        category: document.getElementById('courseCategory').value,
+        description: document.getElementById('courseDescription').value.trim()
+    };
+
+    if (!formData.name) {
+        alert('课程名称不能为空');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return;
+    }
+
+    fetch('/add_course', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => Promise.reject(data));
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            hideAddCourseModal();
+            // 显示成功提示
+            showToast('课程添加成功！', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    })
+    .catch(error => {
+        alert(error.error || '添加失败，请重试');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+// 编辑课程
+function editCourse(courseId) {
+    fetch(`/get_course/${courseId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('获取课程信息失败');
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('editCourseId').value = data.id;
+            document.getElementById('editCourseName').value = data.name;
+            document.getElementById('editCourseCategory').value = data.category;
+            document.getElementById('editCourseDescription').value = data.description || '';
+
+            // 处理时间格式
+            if (data.last_study) {
+                const date = new Date(data.last_study);
+                const formattedDate = date.toISOString().slice(0, 16);
+                document.getElementById('editCourseLasttime').value = formattedDate;
+            }
+
+            showEditCourseModal();
+        })
+        .catch(error => {
+            alert('获取课程信息失败：' + error.message);
+        });
+}
+
+// 提交编辑表单
+document.getElementById('editCourseForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="loading"></span> 保存中...';
+    submitBtn.disabled = true;
+
+    const courseId = document.getElementById('editCourseId').value;
+    const formData = {
+        name: document.getElementById('editCourseName').value.trim(),
+        category: document.getElementById('editCourseCategory').value,
+        description: document.getElementById('editCourseDescription').value.trim(),
+        last_study: document.getElementById('editCourseLasttime').value
+    };
+
+    if (!formData.name) {
+        alert('课程名称不能为空');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return;
+    }
+
+    fetch(`/update_course/${courseId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => Promise.reject(data));
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            hideEditCourseModal();
+            showToast('课程修改成功！', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    })
+    .catch(error => {
+        alert(error.error || '修改失败，请重试');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+// 学习课程
+function startStudy(courseId) {
+    const duration = prompt('请输入学习时长（分钟）：', '30');
+    if (duration && !isNaN(duration) && parseInt(duration) > 0) {
+        const studyBtn = event.target.closest('button');
+        const originalText = studyBtn.innerHTML;
+        studyBtn.innerHTML = '<span class="loading"></span>';
+        studyBtn.disabled = true;
+
+        fetch('/record_study', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                course_id: courseId,
+                duration: parseInt(duration)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.succes) {  // 注意后端返回的是 succes 不是 success
+                showToast('学习时长记录成功！', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                alert('记录失败');
+            }
+        })
+        .catch(error => {
+            alert('记录失败：' + error);
+        })
+        .finally(() => {
+            studyBtn.innerHTML = originalText;
+            studyBtn.disabled = false;
+        });
+    }
+}
+
+// 删除课程
+function deleteCourse(courseId) {
+    if (!confirm('确定要删除这门课程吗？此操作不可恢复！')) return;
+
+    const deleteBtn = event.target.closest('button');
+    const originalText = deleteBtn.innerHTML;
+    deleteBtn.innerHTML = '<span class="loading"></span>';
+    deleteBtn.disabled = true;
+
+    fetch(`/delete_course/${courseId}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => Promise.reject(data));
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // 移除课程卡片
+            const courseCard = document.getElementById(`course-${courseId}`);
+            if (courseCard) {
+                courseCard.classList.add('fade-out');
+                setTimeout(() => {
+                    courseCard.remove();
+                    // 如果没有课程了，刷新显示空状态
+                    if (document.querySelectorAll('.course-card').length === 0) {
+                        location.reload();
+                    } else {
+                        showToast('课程删除成功！', 'success');
+                    }
+                }, 300);
+            }
+        } else {
+            throw new Error(data.error || '删除失败');
+        }
+    })
+    .catch(error => {
+        alert(error.error || '删除失败');
+        deleteBtn.innerHTML = originalText;
+        deleteBtn.disabled = false;
+    });
+}
+
+// 显示提示消息
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `flash-message ${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 10px;
+        color: white;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' :
+                    type === 'error' ? 'linear-gradient(135deg, #ef4444, #dc2626)' :
+                    'linear-gradient(135deg, #3b82f6, #2563eb)'};
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// 点击模态框外部关闭
+window.onclick = function(event) {
+    const addModal = document.getElementById('addCourseModal');
+    const editModal = document.getElementById('editCourseModal');
+
+    if (event.target === addModal) {
+        hideAddCourseModal();
+    }
+    if (event.target === editModal) {
+        hideEditCourseModal();
+    }
+}
+</script>
+{% endblock %}

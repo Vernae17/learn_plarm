@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 学习分析平台{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 30px;">学习行为分析</h2>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <i class="fas fa-chart-pie" style="font-size: 2rem; color: #667eea;"></i>
+        <div class="stat-value" id="totalTime">-</div>
+        <div class="stat-label">总学习时长</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-chart-bar" style="font-size: 2rem; color: #667eea;"></i>
+        <div class="stat-value" id="avgTime">-</div>
+        <div class="stat-label">平均每课程时长</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-chart-line" style="font-size: 2rem; color: #667eea;"></i>
+        <div class="stat-value" id="courseCount">-</div>
+        <div class="stat-label">课程数量</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+    <div class="chart-container" id="pieChart"></div>
+    <div class="chart-container" id="barChart"></div>
+</div>
+
+<div class="chart-container" id="trendChart" style="height: 300px;"></div>
+
+<script>
+    function loadAnalysis() {
+        fetch('/api/analysis')
+            .then(response => response.json())
+            .then(data => {
+                // 更新统计数据
+                document.getElementById('totalTime').textContent = data.total_time + '分钟';
+                document.getElementById('avgTime').textContent =
+                    data.course_count > 0 ? Math.round(data.total_time / data.course_count) + '分钟' : '0分钟';
+                document.getElementById('courseCount').textContent = data.course_count;
+
+                // 饼图 - 课程时长分布
+                const pieChart = echarts.init(document.getElementById('pieChart'));
+                pieChart.setOption({
+                    title: { text: '课程时长分布', left: 'center' },
+                    tooltip: { trigger: 'item', formatter: '{b}: {c}分钟 ({d}%)' },
+                    series: [{
+                        type: 'pie',
+                        radius: '70%',
+                        data: data.course_distribution.map(c => ({
+                            name: c.name,
+                            value: c.total_time
+                        })),
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }]
+                });
+
+                // 条形图 - 类别分布
+                const barChart = echarts.init(document.getElementById('barChart'));
+                barChart.setOption({
+                    title: { text: '类别学习时长', left: 'center' },
+                    tooltip: { trigger: 'axis', formatter: '{b}: {c}分钟' },
+                    xAxis: {
+                        type: 'category',
+                        data: data.category_distribution.map(c => c.name),
+                        axisLabel: { rotate: 45 }
+                    },
+                    yAxis: { type: 'value', name: '学习时长（分钟）' },
+                    series: [{
+                        name: '学习时长',
+                        type: 'bar',
+                        data: data.category_distribution.map(c => c.value),
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#667eea' },
+                                { offset: 1, color: '#764ba2' }
+                            ])
+                        }
+                    }]
+                });
+
+                // 趋势图
+                const trendChart = echarts.init(document.getElementById('trendChart'));
+                trendChart.setOption({
+                    title: { text: '最近7天学习趋势', left: 'center' },
+                    tooltip: { trigger: 'axis' },
+                    xAxis: {
+                        type: 'category',
+                        data: data.study_trend.map(d => d.date)
+                    },
+                    yAxis: { type: 'value', name: '学习时长（分钟）' },
+                    series: [{
+                        name: '学习时长',
+                        type: 'line',
+                        data: data.study_trend.map(d => d.minutes),
+                        smooth: true,
+                        lineStyle: { color: '#667eea', width: 3 },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(102,126,234,0.3)' },
+                                { offset: 1, color: 'rgba(102,126,234,0)' }
+                            ])
+                        }
+                    }]
+                });
+
+                // 窗口大小改变时自适应
+                window.addEventListener('resize', () => {
+                    pieChart.resize();
+                    barChart.resize();
+                    trendChart.resize();
+                });
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAnalysis);
+</script>
+{% endblock %}

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>设置页面</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="settings-container">
+    <!-- 页面标题 -->
+    <div class="settings-header">
+        <h1>账号设置</h1>
+        <p>管理你的个人信息和安全设置</p>
+    </div>
+ <!-- 显示Flash消息 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+<!--选项卡设置-->
+<div class="settings-tabs">
+    <button class="tab-btn active" onclick="showTab('profile')">个人资料</button>
+    <button class="tab-btn" onclick="showTab('password')">修改密码</button>
+    <button class="tab-btn" onclick="showTab('avatar')">修改头像</button>
+</div>
+<!-- ========== 个人资料设置 ========== -->
+<div id="profile-tab" class="tab-content active">
+    <form method="POST" action="{{ url_for('settings.settings') }}" class="settings-form">
+        <input type="hidden" name="action" value="info">
+
+        <div class="form-group">
+            <label for="username">
+                <i class="fas fa-user"></i>
+                用户名
+            </label>
+            <input type="text" id="username" value="{{ user.username }}" readonly disabled>
+            <small class="form-text">用户名不可修改</small>
+        </div>
+
+        <div class="form-group">
+            <label for="email">
+                <i class="fas fa-envelope"></i>
+                电子邮箱
+            </label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" placeholder="请输入邮箱" required>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <i class="fas fa-save"></i>
+            保存修改
+        </button>
+    </form>
+</div>
+
+<!-- ========== 修改密码 ========== -->
+<div id="password-tab" class="tab-content">
+    <form method="POST" action="{{ url_for('settings.settings') }}" class="settings-form" onsubmit="return validatePassword()">
+        <input type="hidden" name="action" value="password">
+
+        <div class="form-group">
+            <label for="old_password">
+                <i class="fas fa-lock"></i>
+                当前密码
+            </label>
+            <input type="password" id="old_password" name="old_password" placeholder="请输入当前密码" required>
+        </div>
+
+        <div class="form-group">
+            <label for="new_password">
+                <i class="fas fa-key"></i>
+                新密码
+            </label>
+            <input type="password" id="new_password" name="new_password" placeholder="请输入新密码" required minlength="6">
+            <small class="form-text">密码长度至少6位</small>
+        </div>
+
+        <div class="form-group">
+            <label for="confirm_password">
+                <i class="fas fa-check-circle"></i>
+                确认新密码
+            </label>
+            <input type="password" id="confirm_password" placeholder="请再次输入新密码" required>
+        </div>
+
+        <div class="password-strength" id="passwordStrength">
+            <div class="strength-bar"></div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <i class="fas fa-sync-alt"></i>
+            修改密码
+        </button>
+    </form>
+</div>
+
+<!-- ========== 更换头像 ========== -->
+<div id="avatar-tab" class="tab-content">
+    <form method="POST" action="{{ url_for('settings.settings') }}" enctype="multipart/form-data" class="avatar-form">
+        <input type="hidden" name="action" value="avatar">
+
+        <div class="avatar-section">
+            <!-- 当前头像预览 -->
+            <div class="current-avatar">
+                <h3>当前头像</h3>
+                <div class="avatar-wrapper">
+                    {% set avatar_url = url_for('static', filename='uploads/avatars/' + user.avatar) if user.avatar and user.avatar != 'default_avatar.png' else url_for('static', filename='uploads/avatars/default_avatar.png') %}
+                    <img src="{{ avatar_url }}"
+                         alt="当前头像"
+                         class="avatar-preview"
+                         id="avatarPreview"
+                         onerror="this.src='{{ url_for('static', filename='uploads/avatars/default_avatar.png') }}'">
+                </div>
+            </div>
+
+            <!-- 上传新头像 -->
+            <div class="upload-avatar">
+                <h3>上传新头像</h3>
+
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>点击选择或拖拽图片到此处</p>
+                    <small>支持 JPG、PNG、GIF，大小不超过2MB</small>
+                    <input type="file" id="avatar" name="avatar" accept="image/*" style="display: none;">
+                </div>
+
+                <!-- 新头像预览 -->
+                <div id="newAvatarPreview" class="new-avatar-preview" style="display: none;">
+                    <h4>新头像预览</h4>
+                    <div class="preview-wrapper">
+                        <img src="" alt="新头像预览" id="previewImage">
+                    </div>
+                    <button type="button" class="btn-cancel-preview" onclick="cancelPreview()">
+                        <i class="fas fa-times"></i>
+                        取消
+                    </button>
+                </div>
+
+                <button type="submit" class="btn-submit" id="uploadBtn" disabled>
+                    <i class="fas fa-upload"></i>
+                    上传新头像
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    // 选项卡切换
+    function showTab(tabName) {
+        // 隐藏所有选项卡
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // 显示选中的选项卡
+        document.getElementById(tabName + '-tab').classList.add('active');
+
+        // 更新按钮状态
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    }
+
+    // 密码验证
+    function validatePassword() {
+        const oldPw = document.getElementById('old_password').value;
+        const newPw = document.getElementById('new_password').value;
+        const confirmPw = document.getElementById('confirm_password').value;
+
+        if (!oldPw) {
+            alert('请输入当前密码');
+            return false;
+        }
+
+        if (newPw.length < 6) {
+            alert('新密码长度至少为6位');
+            return false;
+        }
+
+        if (newPw !== confirmPw) {
+            alert('两次输入的密码不一致');
+            return false;
+        }
+
+        return true;
+    }
+
+    // 密码强度检测
+    document.getElementById('new_password')?.addEventListener('input', function(e) {
+        const password = e.target.value;
+        const strengthBar = document.querySelector('.strength-bar');
+        let strength = 0;
+
+        if (password.length >= 6) strength += 25;
+        if (password.match(/[a-z]+/)) strength += 25;
+        if (password.match(/[A-Z]+/)) strength += 25;
+        if (password.match(/[0-9]+/)) strength += 25;
+
+        strengthBar.style.width = strength + '%';
+
+        if (strength <= 25) {
+            strengthBar.style.background = '#ff6b6b';
+        } else if (strength <= 50) {
+            strengthBar.style.background = '#ffa502';
+        } else if (strength <= 75) {
+            strengthBar.style.background = '#ffd32a';
+        } else {
+            strengthBar.style.background = '#6ab04c';
+        }
+    });
+
+    // 头像上传相关
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('avatar');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const preview = document.getElementById('newAvatarPreview');
+        const previewImage = document.getElementById('previewImage');
+
+        // 点击上传区域
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect(files[0]);
+            }
+        });
+
+        // 选择文件
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                handleFileSelect(this.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            // 检查文件类型
+            if (!file.type.match('image.*')) {
+                alert('请选择图片文件');
+                return;
+            }
+
+            // 检查文件大小 (2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('文件大小不能超过2MB');
+                return;
+            }
+
+            // 预览
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                preview.style.display = 'block';
+                uploadBtn.disabled = false;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 取消预览
+    function cancelPreview() {
+        document.getElementById('newAvatarPreview').style.display = 'none';
+        document.getElementById('avatar').value = '';
+        document.getElementById('uploadBtn').disabled = true;
+    }
+
+    // 自动隐藏Flash消息
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(alert => {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 500);
+        });
+    }, 3000);
+</script>
+</div>
+</body>
+</html>

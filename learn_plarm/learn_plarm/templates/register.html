@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-card">
+            <!-- 消息提示区域 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div id="flash-container">
+                        {% for category, message in messages %}
+                            <div class="flash-message {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <script>
+            // 最简单的实现：3秒后删除所有flash消息
+            setTimeout(function() {
+                const container = document.getElementById('flash-container');
+                if (container) {
+                    container.style.transition = 'opacity 0.5s';
+                    container.style.opacity = '0';
+                    setTimeout(() => container.remove(), 500);
+                }
+            }, 3000); // 3000毫秒 = 3秒
+            </script>
+
+            <form action="/register" method="post">
+                <div class="input-group">
+                    <label for="usernsme">用户名：</label>
+                    <input type="text" id="username" name="username">
+                </div>
+
+                <div class="input-group">
+                    <label for="password">密码：</label>
+                    <input type="password" id="password" name="password">
+                </div>
+
+                <div class="input-group">
+                    <label for="email">邮箱：</label>
+                    <input type="text" id="email" name="email">
+                </div>
+
+                <button type="submit" class="btn btn-primary">注册</button>
+            </form>
+
+        </div>
+    </div>
+</body>
+</html>

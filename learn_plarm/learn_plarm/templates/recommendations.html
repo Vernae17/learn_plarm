@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+
+{% block title %}个性化推荐 - 学习分析平台{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recommendations-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .recommendations-header h2 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .recommendations-header p {
+        font-size: 1.2em;
+        opacity: 0.95;
+    }
+    
+    .loading-spinner {
+        text-align: center;
+        padding: 50px;
+    }
+    
+    .loading-spinner i {
+        font-size: 3em;
+        color: #667eea;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .no-recommendations {
+        text-align: center;
+        padding: 60px 20px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 20px;
+        margin: 20px 0;
+    }
+    
+    .no-recommendations i {
+        font-size: 5em;
+        color: #cbd5e0;
+        margin-bottom: 20px;
+    }
+    
+    .no-recommendations h3 {
+        color: #4a5568;
+        margin-bottom: 10px;
+    }
+    
+    .no-recommendations p {
+        color: #718096;
+    }
+    
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+    
+    .recommend-card {
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-left: 8px solid;
+        animation: cardFadeIn 0.5s ease-out;
+    }
+    
+    @keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .recommend-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    }
+    
+    .recommend-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 150px;
+        height: 150px;
+        background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.1) 50%);
+        border-radius: 0 0 0 150px;
+    }
+    
+    /* 优先级颜色 */
+    .recommend-card.high { border-left-color: #f56565; }
+    .recommend-card.medium { border-left-color: #4299e1; }
+    .recommend-card.low { border-left-color: #48bb78; }
+    
+    .recommend-type {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 25px;
+        font-size: 0.85em;
+        font-weight: 600;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .recommend-card.high .recommend-type {
+        background: #f56565;
+        color: white;
+    }
+    
+    .recommend-card.medium .recommend-type {
+        background: #4299e1;
+        color: white;
+    }
+    
+    .recommend-card.low .recommend-type {
+        background: #48bb78;
+        color: white;
+    }
+    
+    .recommend-title {
+        font-size: 1.4em;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 15px;
+        line-height: 1.4;
+    }
+    
+    .recommend-description {
+        color: #4a5568;
+        font-size: 1em;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        padding-right: 20px;
+    }
+    
+    .recommend-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .priority-badge {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.9em;
+    }
+    
+    .priority-badge i {
+        font-size: 1.1em;
+    }
+    
+    .priority-badge.high { color: #f56565; }
+    .priority-badge.medium { color: #4299e1; }
+    .priority-badge.low { color: #48bb78; }
+    
+    .btn-study {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-size: 0.9em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .btn-study:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin: 30px 0;
+    }
+    
+    .stat-item {
+        background: rgba(255,255,255,0.9);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-item i {
+        font-size: 2em;
+        color: #667eea;
+        margin-bottom: 10px;
+    }
+    
+    .stat-number {
+        font-size: 2em;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #718096;
+        font-size: 0.9em;
+    }
+    
+    .error-message {
+        background: #fed7d7;
+        color: #c53030;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 20px 0;
+        border: 1px solid #fc8181;
+    }
+    
+    .refresh-btn {
+        background: #4299e1;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 1em;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .refresh-btn:hover {
+        background: #3182ce;
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="recommendations-header">
+    <h2><i class="fas fa-magic"></i> 个性化学习推荐</h2>
+    <p>基于你的学习行为，为你量身定制的学习建议</p>
+</div>
+
+<!-- 加载动画 -->
+<div id="loadingSpinner" class="loading-spinner">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p style="margin-top: 15px; color: #667eea;">正在分析你的学习数据...</p>
+</div>
+
+<!-- 错误信息 -->
+<div id="errorMessage" class="error-message" style="display: none;"></div>
+
+<!-- 统计摘要 -->
+<div id="statsSummary" class="stats-summary" style="display: none;">
+    <div class="stat-item">
+        <i class="fas fa-book"></i>
+        <div class="stat-number" id="totalCourses">-</div>
+        <div class="stat-label">学习课程</div>
+    </div>
+    <div class="stat-item">
+        <i class="fas fa-clock"></i>
+        <div class="stat-number" id="totalTime">-</div>
+        <div class="stat-label">总学习时长</div>
+    </div>
+    <div class="stat-item">
+        <i class="fas fa-chart-line"></i>
+        <div class="stat-number" id="avgTime">-</div>
+        <div class="stat-label">平均时长</div>
+    </div>
+</div>
+
+<!-- 推荐列表 -->
+<div id="recommendationsContainer" class="recommendations-grid"></div>
+
+<!-- 无推荐提示 -->
+<div id="noRecommendations" class="no-recommendations" style="display: none;">
+    <i class="fas fa-smile-wink"></i>
+    <h3>暂无个性化推荐</h3>
+    <p>继续学习，我们会为你生成更多推荐！</p>
+    <button onclick="loadRecommendations()" class="refresh-btn">
+        <i class="fas fa-sync-alt"></i> 刷新
+    </button>
+</div>
+
+<script>
+function loadRecommendations() {
+    // 显示加载动画，隐藏其他内容
+    document.getElementById('loadingSpinner').style.display = 'block';
+    document.getElementById('statsSummary').style.display = 'none';
+    document.getElementById('recommendationsContainer').innerHTML = '';
+    document.getElementById('noRecommendations').style.display = 'none';
+    document.getElementById('errorMessage').style.display = 'none';
+    
+    fetch('/api/recommendations')
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                throw new Error('网络响应错误');
+            }
+            return response.json();
+        })
+        .then(recommendations => {
+            // 隐藏加载动画
+            document.getElementById('loadingSpinner').style.display = 'none';
+            
+            console.log('收到的推荐:', recommendations); // 调试用
+            
+            if (!recommendations || recommendations.length === 0) {
+                document.getElementById('noRecommendations').style.display = 'block';
+                return;
+            }
+            
+            // 显示统计摘要
+            document.getElementById('statsSummary').style.display = 'grid';
+            
+            // 计算统计信息（如果有返回统计数据的话）
+            updateStats(recommendations);
+            
+            // 渲染推荐卡片
+            renderRecommendations(recommendations);
+        })
+        .catch(error => {
+            console.error('加载推荐失败:', error);
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('errorMessage').textContent = '加载推荐失败，请稍后重试';
+        });
+}
+
+function updateStats(recommendations) {
+    // 这里可以根据您的API返回的统计数据来更新
+    // 如果API没有返回统计，可以暂时显示默认值或从其他接口获取
+    
+    // 示例：如果有返回统计数据
+    fetch('/api/analysis')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalCourses').textContent = data.course_count || 0;
+            document.getElementById('totalTime').textContent = (data.total_time || 0) + '分钟';
+            const avgTime = data.course_count > 0 
+                ? Math.round((data.total_time || 0) / data.course_count) 
+                : 0;
+            document.getElementById('avgTime').textContent = avgTime + '分钟';
+        })
+        .catch(error => {
+            console.log('无法获取统计数据');
+        });
+}
+
+function renderRecommendations(recommendations) {
+    const container = document.getElementById('recommendationsContainer');
+    container.innerHTML = '';
+    
+    recommendations.forEach((rec, index) => {
+        // 设置延迟动画
+        const card = document.createElement('div');
+        card.className = `recommend-card ${rec.priority || 'medium'}`;
+        card.style.animationDelay = `${index * 0.1}s`;
+        
+        // 根据类型设置图标和标签
+        let typeIcon = '';
+        let typeText = '';
+        
+        switch(rec.type) {
+            case 'new_course':
+                typeIcon = 'fa-star';
+                typeText = '新课程推荐';
+                break;
+            case 'focus':
+                typeIcon = 'fa-bullseye';
+                typeText = '需要关注';
+                break;
+            case 'praise':
+                typeIcon = 'fa-medal';
+                typeText = '学习达人';
+                break;
+            default:
+                typeIcon = 'fa-lightbulb';
+                typeText = '学习建议';
+        }
+        
+        // 优先级显示
+        let priorityText = '';
+        let priorityIcon = '';
+        switch(rec.priority) {
+            case 'high':
+                priorityText = '高优先级';
+                priorityIcon = 'fa-exclamation-circle';
+                break;
+            case 'medium':
+                priorityText = '中等优先级';
+                priorityIcon = 'fa-check-circle';
+                break;
+            case 'low':
+                priorityText = '低优先级';
+                priorityIcon = 'fa-info-circle';
+                break;
+            default:
+                priorityText = '一般建议';
+                priorityIcon = 'fa-info-circle';
+        }
+        
+        // 构建卡片内容
+        card.innerHTML = `
+            <div class="recommend-type">
+                <i class="fas ${typeIcon}"></i> ${typeText}
+            </div>
+            <h3 class="recommend-title">${rec.title || '学习建议'}</h3>
+            <p class="recommend-description">${rec.description || ''}</p>
+            <div class="recommend-meta">
+                <span class="priority-badge ${rec.priority || 'medium'}">
+                    <i class="fas ${priorityIcon}"></i> ${priorityText}
+                </span>
+                ${rec.course_id ? `
+                    <a href='/mycourse'>
+                        <button onclick="startLearning(${rec.course_id})" class="btn-study">
+                            <i class="fas fa-play"></i> 开始学习
+                        </button>
+                    </a>
+                ` : ''}
+            </div>
+        `;
+        
+        container.appendChild(card);
+    });
+}
+
+function startLearning(courseId) {
+    // 跳转到课程学习页面
+    window.location.href = `/course/${courseId}`;
+}
+
+function refreshRecommendations() {
+    loadRecommendations();
+}
+
+// 页面加载时获取推荐
+document.addEventListener('DOMContentLoaded', loadRecommendations);
+</script>
+{% endblock %}
