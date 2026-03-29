@@ -33,9 +33,6 @@ def allowed_file(filename):
 # 设置页面
 @st.route('/settings', methods=['GET', 'POST'])
 def settings():
-    if 'user' not in session:
-        flash('用户未登陆', 'error')
-        return jsonify({'error': '用户不存在'})
 
     username = session['user']
 

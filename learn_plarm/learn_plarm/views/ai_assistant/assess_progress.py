@@ -8,9 +8,6 @@ aip = Blueprint("assess_progress", __name__)
 # 学习进度评估
 @aip.route("/api/assess_progress")
 def assess_progress():
-    if 'user' not in session:
-        flash({'error': '用户未登陆'})
-        return jsonify({'error': '请重新登录'})
 
     username = session['user']
 
@@ -70,9 +67,6 @@ def assess_progress():
 # 加载历史评估
 @aip.route("/api/get_assessments")
 def get_assessments():
-    if 'user' not in session:
-        flash({'error':'用户未登陆'})
-        return jsonify({'error': '请重新登录'})
 
     username = session['user']
     sql_user = 'SELECT id FROM learn_plarm.users WHERE username=%s'

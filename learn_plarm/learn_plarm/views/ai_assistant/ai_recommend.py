@@ -9,12 +9,7 @@ air = Blueprint("ai_recommend", __name__)
 @air.route('/api/ai_recommend', methods=['POST'])
 def ai_recommend():
     """基于大模型的智能课程推荐"""
-    if 'user' not in session:
-        flash({'error':'用户未登陆'}),401
-        return jsonify({'error':'请重新登录'})
     username = session['user']
-
-
 
     # 获取用户学习数据
     sql_user = 'SELECT id FROM learn_plarm.users WHERE username = %s'

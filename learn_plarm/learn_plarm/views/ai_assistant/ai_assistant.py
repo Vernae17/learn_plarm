@@ -5,6 +5,4 @@ aiat = Blueprint("ai_assistant", __name__)
 # 加一个ai助手功能
 @aiat.route('/ai_assistant')
 def ai_assistant():
-    if 'user' not in session:
-        return redirect(url_for('login'))
     return render_template('ai_assistant.html')

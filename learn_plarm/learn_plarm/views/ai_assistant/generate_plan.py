@@ -8,9 +8,6 @@ aigp = Blueprint("generate_plan", __name__)
 # 生成学习计划
 @aigp.route("/api/generate_plan", methods = ["POST"])
 def generate_plan():
-    if 'user' not in session:
-        flash({'error': '用户未登陆'})
-        return jsonify({'error':'请重新登录'})
 
     username = session['user']
     sql_user = 'SELECT id FROM learn_plarm.users WHERE username=%s'

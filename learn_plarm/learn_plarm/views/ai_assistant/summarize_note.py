@@ -9,9 +9,6 @@ ais = Blueprint("summarize_note", __name__)
 @ais.route('/api/summarize_note',methods = ['GET', 'POST', 'PUT', 'DELETE'])
 def summarize_note():
     """智能笔记总结"""
-    if 'user' not in session:
-        return jsonify({'error': '未登录'}), 401
-
     username = session['user']
 
     sql_user = 'SELECT id FROM learn_plarm.users WHERE username = %s'

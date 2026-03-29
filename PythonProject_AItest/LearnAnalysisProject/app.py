@@ -96,7 +96,7 @@ def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    user = User.query.get(session['user_id'])
+    '''user = User.query.get(session['user_id'])
 
     # 获取用户的课程列表
     user_courses = UserCourse.query.filter_by(user_id=user.id).all()
@@ -108,14 +108,14 @@ def dashboard():
     # 获取最近学习活动
     recent_activities = UserBehavior.query.filter_by(
         user_id=user.id
-    ).order_by(UserBehavior.created_at.desc()).limit(10).all()
-
-    return render_template('dashboard.html',
+    ).order_by(UserBehavior.created_at.desc()).limit(10).all(),
                            user=user,
                            user_courses=user_courses,
                            total_time=total_time,
                            course_count=course_count,
-                           recent_activities=recent_activities)
+                           recent_activities=recent_activities'''
+
+    return render_template('dashboard.html')
 
 
 @app.route('/api/courses', methods=['GET', 'POST'])

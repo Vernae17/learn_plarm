@@ -7,9 +7,6 @@ ay = Blueprint("analysis", __name__)
 # 学习行为分析API
 @ay.route('/api/analysis')
 def get_analysis():
-    if 'user' not in session:
-        flash('用户未登陆','error')
-        return jsonify({'error': '用户未登陆'})
 
     username = session['user']
 
@@ -96,7 +93,4 @@ def get_analysis():
 # 学习行为分析页面
 @ay.route('/analysis')
 def analysis():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-
     return render_template('analysis.html')

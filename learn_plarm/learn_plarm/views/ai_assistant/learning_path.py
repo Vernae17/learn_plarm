@@ -8,9 +8,6 @@ ail = Blueprint("learning_path", __name__)
 
 @ail.route("/api/learning_path", methods=['POST'])
 def learning_path():
-    if 'user' not in session:
-        flash({'error': '用户未登陆'})
-        return jsonify({'error': '请重新登录'})
 
     username = session['user']
     sql_user = 'SELECT id FROM learn_plarm.users WHERE username=%s'

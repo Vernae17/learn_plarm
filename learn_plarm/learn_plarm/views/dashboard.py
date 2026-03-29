@@ -1,4 +1,4 @@
-from flask import render_template, redirect, flash, session, url_for, Blueprint
+from flask import render_template, redirect, flash, session, Blueprint, url_for
 
 from learn_plarm.views.common import mysql_operate
 
@@ -6,9 +6,6 @@ dab = Blueprint("dashboard", __name__)
 
 @dab.route('/dashboard')
 def dashboard():
-    if 'user' not in session:
-        flash('请先登陆','warning')
-        return redirect(url_for('login'))
 
     username = session['user']
     print(username)

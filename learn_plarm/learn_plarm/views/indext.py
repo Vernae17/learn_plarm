@@ -23,15 +23,16 @@ def login():
 
 @id.route("/logout") # 退出
 def logout():
+    session.clear()
     flash('已退出，请重新登陆～','info')
-    return redirect(url_for('login'))
+    return redirect('/login')
 
 @id.route("/regist") # 注册
 def regist():
     return render_template("register.html")
 
 # 登陆
-@id.route("/login", methods=['POST'])
+@id.route("/login", methods=['POST', 'GET'])
 def getLoginRequest():
     # 使用 request.form 获取POST数据
     username = str(request.form.get("username"))
@@ -65,7 +66,7 @@ def getLoginRequest():
             flash('用户名或密码错误，请重新登录！','error')
             return render_template("index.html")
     else:
-        flash('用户名或密码错误，请重新登录！', 'error')
+        flash('请先登录！', 'error')
         return render_template("index.html")
 
 # 注册

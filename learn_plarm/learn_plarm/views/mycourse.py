@@ -7,8 +7,7 @@ mc = Blueprint("mycourse", __name__)
 # 我的课程页面
 @mc.route('/mycourse')
 def mycourse():
-    if 'user' not in session:
-        return redirect(url_for('login'))
+
     username = session['user']
     print(username)
 
@@ -90,9 +89,6 @@ def mycourse():
 # 获取单个课程信息
 @mc.route('/get_course/<int:course_id>', methods=['GET'])
 def get_course(course_id):
-    if 'user' not in session:
-        # flash('')
-        return jsonify({'error', '未登陆'})
 
     username = session['user']
 
@@ -141,9 +137,6 @@ def get_course(course_id):
 # 添加课程
 @mc.route('/add_course', methods=['POST'])
 def add_course():
-    if 'user' not in session:
-        flash("用户不存在",'error')
-        return jsonify({'error': '未登陆'}),401
 
     data = request.json
     course_name = data.get('name')
@@ -199,9 +192,6 @@ def add_course():
 # 编辑课程
 @mc.route('/update_course/<int:course_id>', methods = ['PUT'])
 def update_course(course_id):
-    if 'user' not in session:
-        flash("用户不存在", 'error')
-        return jsonify({'error': '未登陆'}), 401
 
     data = request.json
     course_name = data.get('name')
@@ -250,8 +240,6 @@ def update_course(course_id):
 # 记录学习时长
 @mc.route('/record_study', methods = ['POST'])
 def record_study():
-    if 'user' not in session:
-        flash('用户不存在','error')
 
     data = request.json
     course_id = data.get('course_id')
@@ -286,8 +274,6 @@ def record_study():
 # 删除课程
 @mc.route('/delete_course/<int:course_id>', methods=['DELETE'])
 def delete_course(course_id):
-    if 'user' not in session:
-        return jsonify({'error': '未登录'}), 401
 
     username = session['user']
 

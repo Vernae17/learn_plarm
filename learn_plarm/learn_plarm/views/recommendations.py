@@ -84,6 +84,6 @@ def get_recommendations():
 # 个性化推荐页面
 @rc.route('/recommendations')
 def recommendations():
-    if 'user' not in session:
-        return redirect(url_for('login'))
+    # if 'user' not in session:
+    #     return redirect(url_for('login'))
     return render_template('recommendations.html')
