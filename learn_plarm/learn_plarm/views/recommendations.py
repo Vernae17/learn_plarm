@@ -7,10 +7,6 @@ rc = Blueprint("recommendations", __name__)
 # 个性化API推荐
 @rc.route('/api/recommendations')
 def get_recommendations():
-    if 'user' not in session:
-        flash('用户未登陆','error')
-        return jsonify({'error': '用户未登陆'})
-
     username = session['user']
 
     # 获取用户id
@@ -84,6 +80,4 @@ def get_recommendations():
 # 个性化推荐页面
 @rc.route('/recommendations')
 def recommendations():
-    # if 'user' not in session:
-    #     return redirect(url_for('login'))
     return render_template('recommendations.html')
