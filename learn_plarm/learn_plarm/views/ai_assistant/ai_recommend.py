@@ -24,7 +24,7 @@ def ai_recommend():
         WHERE uc.user_id = %s
         """
     courses = mysql_operate.db.select_db(sql_courses, (user_id,))
-    # print(f"courses:{courses}")
+    print(f"courses:{courses}")
 
     # 构建提示词
     prompt = f"""
@@ -40,7 +40,7 @@ def ai_recommend():
         """
 
     result =  call_deepseek(prompt, "你是一个专业的学习顾问，擅长分析学习数据并提供个性化建议。")
-    # print(f"/api/ai_recommend result:{result}")
-    # print(type(result))
+    print(f"/api/ai_recommend result:{result}")
+    print(type(result))
 
     return jsonify({'success': True, 'recommendations':result})

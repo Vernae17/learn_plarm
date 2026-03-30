@@ -4,7 +4,7 @@ import threading
 from contextlib import contextmanager
 from learn_plarm.views.config.config import MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB
 
-# 创建连接池
+
 class ConnectionPool:
     """线程安全的连接池"""
 
@@ -65,12 +65,11 @@ class ConnectionPool:
                     self._pool.put(new_conn)
 
 
-# 创建数据库连接
 class MYSQLDB:
     def __init__(self, host, port, user, password, database):
         self.pool = ConnectionPool(host, port, user, password, database)
 
-    @contextmanager # 装饰器
+    @contextmanager
     def get_cursor(self):
         """获取游标"""
         conn = None
@@ -90,13 +89,13 @@ class MYSQLDB:
             if conn:
                 self.pool.return_connection(conn)
 
-    def select_db(self, sql, params=None):   # 查找
-        with self.get_cursor() as cursor:   # 上下文管理器
-            cursor.execute(sql, params or ())  # 执行SQL
+    def select_db(self, sql, params=None):
+        with self.get_cursor() as cursor:
+            cursor.execute(sql, params or ())
             return cursor.fetchall()
 
-    def execute_db(self, sql, params=None):     # 修改
-        with self.get_cursor() as cursor:     # 上下文管理器
+    def execute_db(self, sql, params=None):
+        with self.get_cursor() as cursor:
             cursor.execute(sql, params or ())
             return cursor.lastrowid
 

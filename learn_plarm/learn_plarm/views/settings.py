@@ -42,7 +42,7 @@ def settings():
         if action == 'password':
             old_password = request.form.get('old_password')
             new_password = request.form.get('new_password')
-            # print(old_password)
+            print(old_password)
 
             if not old_password or not new_password:
                 flash({'请填写所有密码字段': 'error'})
@@ -50,7 +50,7 @@ def settings():
             # 验证原密码
             sql_oldpw = "SELECT password FROM learn_plarm.users WHERE username = %s"
             old_pw_data = mysql_operate.db.select_db(sql_oldpw,(username,))
-            # print(old_pw_data)
+            print(old_pw_data)
 
             if old_pw_data and old_pw_data[0]['password']:
                 stored_password = old_pw_data[0]['password']

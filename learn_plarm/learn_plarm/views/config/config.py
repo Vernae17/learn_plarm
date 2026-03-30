@@ -27,7 +27,7 @@ class ProductionConfig(Config):
     DEBUG = False
     # 生产环境使用绝对路径
     UPLOAD_FOLDER = os.path.join('/Users/nicole/PycharmProjects/learn_plarm/learn_plarm', 'static', 'uploads', 'avatars')
-    # print(UPLOAD_FOLDER)
+    print(UPLOAD_FOLDER)
 
 
 # 配置字典

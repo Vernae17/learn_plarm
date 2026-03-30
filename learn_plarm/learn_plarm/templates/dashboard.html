@@ -212,74 +212,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
-        /* 默认首页样式 - 透明背景 */
-        .default-home {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            min-height: calc(100vh - 120px);
-            background: transparent;
-            border-radius: 20px;
-            padding: 60px 40px;
-            backdrop-filter: none;
-        }
-
-        .default-home h1 {
-            font-size: 42px;
-            color: white;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .default-home p {
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 15px;
-            line-height: 1.6;
-        }
-
-        .default-home .welcome-icon {
-            font-size: 80px;
-            margin-bottom: 30px;
-            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
-        }
-
-        .default-home .feature-list {
-            display: flex;
-            gap: 30px;
-            margin-top: 40px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .default-home .feature-item {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px 30px;
-            min-width: 150px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: transform 0.3s;
-        }
-
-        .default-home .feature-item:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .default-home .feature-item h3 {
-            color: white;
-            margin-bottom: 10px;
-        }
-
-        .default-home .feature-item p {
-            font-size: 14px;
-            margin-bottom: 0;
-            color: rgba(255, 255, 255, 0.85);
-        }
-
         /* 响应式 */
         @media (max-width: 768px) {
             .nav-container {
@@ -294,16 +226,6 @@
             }
             .main-content {
                 padding: 0 15px;
-            }
-            .default-home h1 {
-                font-size: 28px;
-            }
-            .default-home .feature-list {
-                gap: 15px;
-            }
-            .default-home .feature-item {
-                padding: 15px 20px;
-                min-width: 120px;
             }
         }
 
@@ -477,7 +399,6 @@
 
             <!-- 中间：导航菜单 -->
             <div class="nav-menu">
-                <button class="nav-item" id="homeBtn">首页</button>
                 <button class="nav-item" data-url="/mycourse">我的课程</button>
                 <button class="nav-item" data-url="/analysis">学习分析</button>
                 <button class="nav-item" data-url="/recommendations">个性化推荐</button>
@@ -499,35 +420,9 @@
         </div>
     </div>
 
-    <!-- 主内容区域 -->
+    <!-- 主内容区域：使用 iframe 嵌入子页面 -->
     <div class="main-content">
-        <!-- 默认首页内容（透明背景） -->
-        <div id="defaultHome" class="default-home">
-            <div class="welcome-icon">📚</div>
-            <h1>欢迎来到学习分析平台</h1>
-            <p>记录学习轨迹，分析学习行为，获取个性化推荐</p>
-            <p>点击上方导航栏开始你的学习之旅</p>
-            <div class="feature-list">
-                <div class="feature-item">
-                    <h3>📖 课程管理</h3>
-                    <p>添加你的学习课程</p>
-                </div>
-                <div class="feature-item">
-                    <h3>📊 学习分析</h3>
-                    <p>可视化学习数据</p>
-                </div>
-                <div class="feature-item">
-                    <h3>🎯 个性推荐</h3>
-                    <p>获取学习建议</p>
-                </div>
-                <div class="feature-item">
-                    <h3>🤖 AI助手</h3>
-                    <p>智能问答辅助</p>
-                </div>
-            </div>
-        </div>
-        <!-- iframe 用于加载子页面 -->
-        <iframe id="contentFrame" class="content-iframe" src="" title="页面内容" style="display: none;"></iframe>
+        <iframe id="contentFrame" class="content-iframe" src="/mycourse" title="页面内容"></iframe>
     </div>
 
     <!-- 浮动AI问答助手 -->
@@ -562,12 +457,14 @@
         const dropdownContent = document.getElementById('dropdownContent');
         const arrowIcon = document.querySelector('.arrow');
 
+        // 点击按钮切换下拉菜单
         dropdownToggleBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             dropdownContent.classList.toggle('show');
             arrowIcon.classList.toggle('rotated');
         });
 
+        // 点击页面其他地方关闭下拉菜单
         document.addEventListener('click', function(e) {
             if (!dropdownToggleBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
                 dropdownContent.classList.remove('show');
@@ -575,53 +472,28 @@
             }
         });
 
-        // ========== 首页显示功能 ==========
+        // ========== iframe 页面切换功能 ==========
         const iframe = document.getElementById('contentFrame');
-        const defaultHome = document.getElementById('defaultHome');
 
-        function showHome() {
-            iframe.style.display = 'none';
-            defaultHome.style.display = 'flex';
-            dropdownContent.classList.remove('show');
-            arrowIcon.classList.remove('rotated');
+        function switchPage(url) {
+            if (iframe) {
+                iframe.src = url;
+                // 切换页面后关闭下拉菜单
+                dropdownContent.classList.remove('show');
+                arrowIcon.classList.remove('rotated');
+            }
         }
 
-        function showPage(url) {
-            iframe.style.display = 'block';
-            defaultHome.style.display = 'none';
-            iframe.src = url;
-            dropdownContent.classList.remove('show');
-            arrowIcon.classList.remove('rotated');
-        }
-
-        // 首页按钮
-        const homeBtn = document.getElementById('homeBtn');
-        if (homeBtn) {
-            homeBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                showHome();
-            });
-        }
-
-        // 其他导航按钮
-        document.querySelectorAll('.nav-item[data-url]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const url = this.getAttribute('data-url');
-                if (url) {
-                    showPage(url);
-                }
-            });
-        });
-
-        // 下拉菜单选项
-        document.querySelectorAll('.dropdown-option').forEach(btn => {
+        // 为所有导航按钮添加点击事件
+        document.querySelectorAll('.nav-item, .dropdown-option').forEach(btn => {
+            // 排除退出登录按钮
             if (btn.id === 'logoutBtn') return;
+
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const url = this.getAttribute('data-url');
                 if (url) {
-                    showPage(url);
+                    switchPage(url);
                 }
             });
         });
@@ -699,6 +571,7 @@
             return div;
         }
 
+        // 添加加载动画样式
         const style = document.createElement('style');
         style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
         document.head.appendChild(style);

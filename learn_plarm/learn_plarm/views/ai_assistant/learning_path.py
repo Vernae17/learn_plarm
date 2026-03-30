@@ -8,6 +8,7 @@ ail = Blueprint("learning_path", __name__)
 
 @ail.route("/api/learning_path", methods=['POST'])
 def learning_path():
+
     username = session['user']
     sql_user = 'SELECT id FROM learn_plarm.users WHERE username=%s'
     user_id0 = mysql_operate.db.select_db(sql_user, (username,))

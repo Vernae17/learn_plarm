@@ -9,8 +9,8 @@ def get_user_avatar(username):
     """获取用户头像"""
     sql = "SELECT avatar FROM learn_plarm.users WHERE username = %s"
     data = mysql_operate.db.select_db(sql, (username,))
-    # print(data)
-    # print(type(data))  # list类型
+    print(data)
+    print(type(data))  # list类型
     if data and len(data) > 0:
         avatar = data[0].get('avatar')
         if avatar:
@@ -38,7 +38,7 @@ def getLoginRequest():
     username = str(request.form.get("username"))
     password = str(request.form.get("password"))
 
-    # print(f"1. 接收到的用户名：'{username}'，密码：'{password}'")
+    print(f"1. 接收到的用户名：'{username}'，密码：'{password}'")
 
     if not username or not password:
         flash('用户名和密码不能为空','error')

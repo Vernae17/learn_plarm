@@ -7,6 +7,7 @@ aia = Blueprint("ai_ask", __name__)
 # ai问答小助手
 @aia.route('/api/ai_ask', methods=['POST'])
 def ai_ask():
+
     username = session['user']
 
     data = request.json
