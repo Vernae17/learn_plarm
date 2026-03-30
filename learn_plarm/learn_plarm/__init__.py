@@ -9,11 +9,11 @@ WHITE_LIST=[
     '/register'
 ]
 
+# 拦截器
 def auth():
     for path in WHITE_LIST:
         if request.path == path:
             return
-
     if request.path.startswith("/static"):
         return
 
@@ -29,7 +29,7 @@ def create_app():
     env = os.environ.get('FLASK_ENV', 'development')
 
     app = Flask(__name__)
-    app.secret_key = 'your-secret-key-here' # 用于 flash 消息
+    app.secret_key = 'your-secret-key-here' # 是 Flask 应用中的一个安全密钥，用于加密 session 数据、保护表单免受 CSRF 攻击等。
     # 初始化生成一个app对象，这个对象就是Flask的当前实例对象，后面的各个方法调用都是这个实例
     # Flask会进行一系列自己的初始化，比如web API路径初始化，web资源加载，日志模块创建等。然后返回这个创建好的对象给你
 
