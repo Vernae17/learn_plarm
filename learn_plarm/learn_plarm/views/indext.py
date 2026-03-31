@@ -9,8 +9,8 @@ def get_user_avatar(username):
     """获取用户头像"""
     sql = "SELECT avatar FROM learn_plarm.users WHERE username = %s"
     data = mysql_operate.db.select_db(sql, (username,))
-    print(data)
-    print(type(data))  # list类型
+    # print(data)
+    # print(type(data))  # list类型
     if data and len(data) > 0:
         avatar = data[0].get('avatar')
         if avatar:
@@ -23,21 +23,22 @@ def login():
 
 @id.route("/logout") # 退出
 def logout():
+    session.clear()
     flash('已退出，请重新登陆～','info')
-    return redirect(url_for('login'))
+    return redirect('/login')
 
 @id.route("/regist") # 注册
 def regist():
     return render_template("register.html")
 
 # 登陆
-@id.route("/login", methods=['POST'])
+@id.route("/login", methods=['POST', 'GET'])
 def getLoginRequest():
     # 使用 request.form 获取POST数据
     username = str(request.form.get("username"))
     password = str(request.form.get("password"))
 
-    print(f"1. 接收到的用户名：'{username}'，密码：'{password}'")
+    # print(f"1. 接收到的用户名：'{username}'，密码：'{password}'")
 
     if not username or not password:
         flash('用户名和密码不能为空','error')
@@ -65,7 +66,7 @@ def getLoginRequest():
             flash('用户名或密码错误，请重新登录！','error')
             return render_template("index.html")
     else:
-        flash('用户名或密码错误，请重新登录！', 'error')
+        flash('请先登录！', 'error')
         return render_template("index.html")
 
 # 注册

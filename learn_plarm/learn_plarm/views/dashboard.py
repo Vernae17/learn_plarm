@@ -1,4 +1,4 @@
-from flask import render_template, redirect, flash, session, url_for, Blueprint
+from flask import render_template, redirect, flash, session, Blueprint, url_for
 
 from learn_plarm.views.common import mysql_operate
 
@@ -6,12 +6,9 @@ dab = Blueprint("dashboard", __name__)
 
 @dab.route('/dashboard')
 def dashboard():
-    if 'user' not in session:
-        flash('请先登陆','warning')
-        return redirect(url_for('login'))
 
     username = session['user']
-    print(username)
+    # print(username)
 
     # 获取用户信息
     sql = "SELECT id, username, email, avatar FROM learn_plarm.users WHERE username = %s"
@@ -30,8 +27,8 @@ def dashboard():
     }
     user_id = user['id']
 
-    print(user_id)
-    print(user.values())
+    # print(user_id)
+    # print(user.values())
 
     # 获取用户的课程列表
     sql_course = """
@@ -42,7 +39,7 @@ def dashboard():
         ORDER BY uc.last_study DESC
         """
     course_data = mysql_operate.db.select_db(sql_course,(user_id,)) or []
-    print(course_data)
+    # print(course_data)
 
     user_course = []
     total_time = 0
@@ -61,7 +58,7 @@ def dashboard():
         total_time += course['total_time'] or 0
 
     course_count = len(user_course)
-    print(course_count)
+    # print(course_count)
 
     # 获取最近的活动
     sql_activities = """
@@ -72,8 +69,8 @@ def dashboard():
         LIMIT 10
     """
     activities_data = mysql_operate.db.select_db(sql_activities,(user_id,)) or []
-    print(f"最近的活动:{type(activities_data)}")  #list类型
-    print(activities_data)
+    # print(f"最近的活动:{type(activities_data)}")  #list类型
+    # print(activities_data)
 
     recent_activities = []
 
@@ -91,7 +88,7 @@ def dashboard():
             'duration': act['duration'] or 0,
             'time': act['created_at'].strftime('%Y-%m-%d %H:%M') if act['created_at'] else ''
         })
-        print(recent_activities)
+        # print(recent_activities)
 
     return render_template('dashboard.html',
                            user = user,

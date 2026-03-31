@@ -7,18 +7,14 @@ ay = Blueprint("analysis", __name__)
 # 学习行为分析API
 @ay.route('/api/analysis')
 def get_analysis():
-    if 'user' not in session:
-        flash('用户未登陆','error')
-        return jsonify({'error': '用户未登陆'})
-
     username = session['user']
 
     # 获取用户id
     sql_user_id = "SELECT id FROM learn_plarm.users WHERE username = %s"
     user_id0 = mysql_operate.db.select_db(sql_user_id, (username,))
-    print(user_id0)
+    # print(user_id0)
     user_id = user_id0[0]['id']
-    print(user_id)
+    # print(user_id)
 
     # 获取所有课程学习数据
     sql_course = """
@@ -32,7 +28,7 @@ def get_analysis():
     total_time = sum(
         c['total_time'] or 0 for c in course_data
     )
-    print(total_time)
+    # print(total_time)
 
     # 课程时长分布
     course_distribution = []
@@ -43,7 +39,7 @@ def get_analysis():
             'total_time': course['total_time'],
             'percentage': round(precentage, 2)
         })
-    print(f'课程时长分布{course_distribution}')
+    # print(f'课程时长分布{course_distribution}')
 
     # 按类别统计
     sql_category = """
@@ -74,7 +70,7 @@ def get_analysis():
         ORDER BY date
         """
     trend_data = mysql_operate.db.select_db(sql_trend,(user_id,)) or []
-    print(f'trend_data{trend_data}')
+    # print(f'trend_data{trend_data}')
 
     study_trend = []
     for trend in trend_data:
@@ -83,7 +79,7 @@ def get_analysis():
             'minutes': trend['total'] or 0
         })
 
-    print(total_time, len(course_data), course_distribution, category_distribution,study_trend)
+    # print(total_time, len(course_data), course_distribution, category_distribution,study_trend)
 
     return jsonify({
         'total_time': total_time,
@@ -96,7 +92,4 @@ def get_analysis():
 # 学习行为分析页面
 @ay.route('/analysis')
 def analysis():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-
     return render_template('analysis.html')

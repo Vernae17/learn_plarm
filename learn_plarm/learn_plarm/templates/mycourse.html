@@ -757,7 +757,7 @@ document.getElementById('addCourseForm').addEventListener('submit', function(e) 
         return;
     }
 
-    fetch('/add_course', {
+    fetch('/api/course', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -789,7 +789,7 @@ document.getElementById('addCourseForm').addEventListener('submit', function(e) 
 
 // 编辑课程
 function editCourse(courseId) {
-    fetch(`/get_course/${courseId}`)
+    fetch(`/api/course/${courseId}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error('获取课程信息失败');
@@ -840,7 +840,7 @@ document.getElementById('editCourseForm').addEventListener('submit', function(e)
         return;
     }
 
-    fetch(`/update_course/${courseId}`, {
+    fetch(`/api/course/${courseId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -916,7 +916,7 @@ function deleteCourse(courseId) {
     deleteBtn.innerHTML = '<span class="loading"></span>';
     deleteBtn.disabled = true;
 
-    fetch(`/delete_course/${courseId}`, {
+    fetch(`/api/course/${courseId}`, {
         method: 'DELETE'
     })
     .then(response => {

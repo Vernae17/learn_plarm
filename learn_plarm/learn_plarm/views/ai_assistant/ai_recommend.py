@@ -9,12 +9,7 @@ air = Blueprint("ai_recommend", __name__)
 @air.route('/api/ai_recommend', methods=['POST'])
 def ai_recommend():
     """基于大模型的智能课程推荐"""
-    if 'user' not in session:
-        flash({'error':'用户未登陆'}),401
-        return jsonify({'error':'请重新登录'})
     username = session['user']
-
-
 
     # 获取用户学习数据
     sql_user = 'SELECT id FROM learn_plarm.users WHERE username = %s'
@@ -29,7 +24,7 @@ def ai_recommend():
         WHERE uc.user_id = %s
         """
     courses = mysql_operate.db.select_db(sql_courses, (user_id,))
-    print(f"courses:{courses}")
+    # print(f"courses:{courses}")
 
     # 构建提示词
     prompt = f"""
@@ -45,7 +40,7 @@ def ai_recommend():
         """
 
     result =  call_deepseek(prompt, "你是一个专业的学习顾问，擅长分析学习数据并提供个性化建议。")
-    print(f"/api/ai_recommend result:{result}")
-    print(type(result))
+    # print(f"/api/ai_recommend result:{result}")
+    # print(type(result))
 
     return jsonify({'success': True, 'recommendations':result})

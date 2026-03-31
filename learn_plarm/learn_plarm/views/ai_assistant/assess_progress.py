@@ -8,10 +8,6 @@ aip = Blueprint("assess_progress", __name__)
 # 学习进度评估
 @aip.route("/api/assess_progress")
 def assess_progress():
-    if 'user' not in session:
-        flash({'error': '用户未登陆'})
-        return jsonify({'error': '请重新登录'})
-
     username = session['user']
 
     try:
@@ -27,7 +23,7 @@ def assess_progress():
             WHERE user_id=%s
             """
         course_date = mysql_operate.db.select_db(sql_course,(user_id,))
-        print(f"course_date:{course_date}")
+        # print(f"course_date:{course_date}")
 
         # 查询用户学习行为
         sql_behavior ="""
@@ -70,9 +66,6 @@ def assess_progress():
 # 加载历史评估
 @aip.route("/api/get_assessments")
 def get_assessments():
-    if 'user' not in session:
-        flash({'error':'用户未登陆'})
-        return jsonify({'error': '请重新登录'})
 
     username = session['user']
     sql_user = 'SELECT id FROM learn_plarm.users WHERE username=%s'
@@ -84,7 +77,7 @@ def get_assessments():
     assessments = mysql_operate.db.select_db(sql,(user_id,))
 
     # 打印查询结果数量
-    print(f"查询到 {len(assessments) if assessments else 0} 条评估记录")
+    # print(f"查询到 {len(assessments) if assessments else 0} 条评估记录")
 
     # 打印每条记录的ID，确认是否是最新数据
     if assessments:

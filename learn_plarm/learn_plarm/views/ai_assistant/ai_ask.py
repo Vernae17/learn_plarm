@@ -7,9 +7,6 @@ aia = Blueprint("ai_ask", __name__)
 # ai问答小助手
 @aia.route('/api/ai_ask', methods=['POST'])
 def ai_ask():
-    if 'user' not in session:
-        flash({'error':'未登陆'})
-        return jsonify({'error':'请重新登录'})
     username = session['user']
 
     data = request.json

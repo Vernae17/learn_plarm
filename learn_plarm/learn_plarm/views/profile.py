@@ -1,5 +1,4 @@
-import jsonify
-from flask import Blueprint, session, flash, redirect, render_template, url_for
+from flask import Blueprint, session, flash, redirect, render_template, url_for, jsonify
 
 from learn_plarm.views.common import mysql_operate
 
@@ -8,10 +7,6 @@ pf = Blueprint("profile", __name__)
 # 个人资料页面
 @pf.route('/profile')
 def profile():
-    if 'user' not in session:
-        flash('用户未登陆', 'error')
-        return jsonify({'error': '用户不存在'})
-
     username = session['user']
 
     sql_userdata = """
