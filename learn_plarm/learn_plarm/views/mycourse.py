@@ -11,8 +11,8 @@ def mycourse():
     # print(username)
 
     # 获取用户信息
-    sql = "SELECT id, username, email, avatar FROM learn_plarm.users WHERE username = %s"
-    user_data = mysql_operate.db.select_db(sql, (username,))
+    # sql = "SELECT id, username, email, avatar FROM learn_plarm.users WHERE username = %s"
+    # user_data = mysql_operate.db.select_db(sql, (username,))
 
     # 获取该用户的id
     sql_user_id = "SELECT id FROM learn_plarm.users WHERE username = %s"
@@ -46,7 +46,7 @@ def mycourse():
         })
         total_time += course['total_time'] or 0
 
-    course_count = len(user_course)
+    # course_count = len(user_course)
     # print(course_count)
 
     # 获取最近的活动
@@ -86,7 +86,7 @@ def mycourse():
                            )
 
 # 获取单个课程信息
-@mc.route('/get_course/<int:course_id>', methods=['GET'])
+@mc.route('/api/courses/<int:course_id>', methods=['GET'])
 def get_course(course_id):
     username = session['user']
 
@@ -106,7 +106,7 @@ def get_course(course_id):
         course_data = mysql_operate.db.select_db(sql_course, (course_id, user_id)) or []
 
         if not course_data:
-            return jsonify({'error','课程不存在'})
+            return jsonify({'error':'课程不存在'})
             # 处理数据格式
         if isinstance(course_data[0], dict):
             course = {
@@ -130,10 +130,10 @@ def get_course(course_id):
 
     except Exception as e:
         print(f"获取课程错误: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e), 'massage':'获取课程错误'}), 500
 
 # 添加课程
-@mc.route('/add_course', methods=['POST'])
+@mc.route('/api/courses', methods=['POST'])
 def add_course():
 
     data = request.json
@@ -171,7 +171,7 @@ def add_course():
     user_course = mysql_operate.db.select_db(sql_check_user,(user_id,course_id))
 
     if user_course and len(user_course) > 0:
-        return jsonify({'error':'已添加该课程'}), 400
+        return jsonify({'error':'已添加该课程'}), 409
 
     # 添加到用户课程
     sql_usercourse = "INSERT INTO learn_plarm.UserCourse(user_id, course_id) VALUES (%s, %s)"
@@ -185,10 +185,10 @@ def add_course():
 
     # print(f'添加课程:{course_data}')
 
-    return jsonify({'success': True, 'course_id': course_id})
+    return jsonify({'success': True, 'course_id': course_id}), 201
 
 # 编辑课程
-@mc.route('/update_course/<int:course_id>', methods = ['PUT'])
+@mc.route('/api/courses/<int:course_id>', methods = ['PUT'])
 def update_course(course_id):
 
     data = request.json
@@ -233,14 +233,14 @@ def update_course(course_id):
     after_data = mysql_operate.db.select_db(sql_after, (course_id, user_id))
     # print(f'查询更新后的数据{after_data}')
 
-    return jsonify({'success': True})
+    return jsonify({'success': True}), 200
 
 # 记录学习时长
-@mc.route('/record_study', methods = ['POST'])
-def record_study():
+@mc.route('/api/courses/<int:course_id>/study', methods = ['POST'])
+def record_study(course_id):
 
     data = request.json
-    course_id = data.get('course_id')
+    # course_id = data.get('course_id')
     duration = data.get('duration', 0)
 
     username = session['user']
@@ -267,10 +267,10 @@ def record_study():
         """
     mysql_operate.db.execute_db(sql_behavior, (user_id, course_id, duration))
 
-    return jsonify({'succes': True})
+    return jsonify({'succes': True}), 200
 
 # 删除课程
-@mc.route('/delete_course/<int:course_id>', methods=['DELETE'])
+@mc.route('/api/courses/<int:course_id>', methods=['DELETE'])
 def delete_course(course_id):
 
     username = session['user']
@@ -303,7 +303,7 @@ def delete_course(course_id):
         sql_delete = "DELETE FROM learn_plarm.UserCourse WHERE user_id = %s AND course_id = %s"
         mysql_operate.db.execute_db(sql_delete, (user_id, course_id))
 
-        return jsonify({'success': True})
+        return jsonify({'success': True}), 200
 
     except Exception as e:
         print(f"删除课程错误: {e}")
